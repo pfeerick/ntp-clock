@@ -189,7 +189,7 @@ void setup() {
     matrix.write();
   });
 
-  ArduinoOTA.setHostname("ntp-clock");
+  ArduinoOTA.setHostname("ntp-clock-dev");
   ArduinoOTA.begin();
 
   DebugPrintln("*OTA: Ready");
