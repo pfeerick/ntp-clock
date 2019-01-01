@@ -35,6 +35,13 @@
 #include <Adafruit_GFX.h>
 #include <Max72xxPanel.h>
 
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_ADXL345_U.h>
+
+// initialise and set an unique identifier
+Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
+
 #include <Button.h>
 
 Button button(0); // Connect your button between P2/GPIO0 and GND
@@ -121,6 +128,31 @@ void setup() {
 #ifndef DEBUG
   wifiManager.setDebugOutput(false);
 #endif
+
+  /* Initialise the ADXL345 sensor */
+  if(!accel.begin())
+  {
+    /* There was a problem detecting the ADXL345 ... check your connections */
+    Serial.println("Ooops, no ADXL345 detected ... Check your wiring!");
+    while(1);
+  }
+
+  /* Set the range to whatever is appropriate for your project */
+  accel.setRange(ADXL345_RANGE_16_G);
+  // accel.setRange(ADXL345_RANGE_8_G);
+  // accel.setRange(ADXL345_RANGE_4_G);
+  // accel.setRange(ADXL345_RANGE_2_G);
+
+  /*
+ // Get a new sensor event
+  sensors_event_t event; 
+  accel.getEvent(&event);
+ 
+ // Display the results (acceleration is measured in m/s^2)
+  Serial.print("X: "); Serial.print(event.acceleration.x); Serial.print("  ");
+  Serial.print("Y: "); Serial.print(event.acceleration.y); Serial.print("  ");
+  Serial.print("Z: "); Serial.print(event.acceleration.z); Serial.print("  ");Serial.println("m/s^2 ");
+  */
 
   matrix.fillScreen(LOW);//Empty the screen
   matrix.setCursor(0, 0); //Move the cursor to the end of the screen
