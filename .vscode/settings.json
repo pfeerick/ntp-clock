@@ -4,7 +4,7 @@
         "PLATFORMIO_CALLER": "vscode"
     },
     "terminal.integrated.env.linux": {
-        "PATH": "/home/pfeerick/.platformio/penv/bin:/home/pfeerick/.platformio/penv:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
+        "PATH": "/home/pfeerick/.platformio/penv/bin:/home/pfeerick/.platformio/penv:/home/pfeerick/.local/bin:/home/pfeerick/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
         "PLATFORMIO_CALLER": "vscode"
     }
 }

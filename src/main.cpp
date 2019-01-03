@@ -61,9 +61,10 @@ A - Accelerometer
 #include <Max72xxPanel.h>
 
 #include <Wire.h>
+#include <MPU6050_tockn.h>
+MPU6050 mpu6050(Wire);
 
 #include <Button.h>
-
 Button button(0); // Connect your button between P2/GPIO0 and GND
 
 #define DEBUG
@@ -101,6 +102,7 @@ Max72xxPanel matrix = Max72xxPanel(pinCS, numberOfHorizontalDisplays, numberOfVe
 
 bool useIMU = true;
 int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
+double pitch, roll, yaw;
 
 /************************* FUNCTION PROTOTYPES ******************************/
 time_t getNtpTime();
@@ -108,6 +110,7 @@ void digitalClockDisplay();
 void printDigits(int digits);
 void sendNTPpacket(IPAddress &address);
 byte check_I2c(byte addr);
+void getAngle(int Vx, int Vy, int Vz);
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {
@@ -163,13 +166,15 @@ void setup()
 
   // Initalise GY-521 / MPU-6050
   Wire.begin(P0, P5); //SDA, SCL
+  mpu6050.begin();
+  //mpu6050.calcGyroOffsets(true);
 
-  check_I2c(MPU_addr);
+  // check_I2c(MPU_addr);
 
-  Wire.beginTransmission(MPU_addr);
-  Wire.write(0x6B); // PWR_MGMT_1 register
-  Wire.write(0);    // set to zero (wakes up the MPU-6050)
-  Wire.endTransmission(true);
+  // Wire.beginTransmission(MPU_addr);
+  // Wire.write(0x6B); // PWR_MGMT_1 register
+  // Wire.write(0);    // set to zero (wakes up the MPU-6050)
+  // Wire.endTransmission(true);
 
   matrix.fillScreen(LOW); //Empty the screen
   matrix.setCursor(0, 0); //Move the cursor to the end of the screen
@@ -227,7 +232,7 @@ void setup()
 
   ArduinoOTA.onError([](ota_error_t error) {
     DebugPrintf("Error[%u]: ", error);
-    
+
     if (error == OTA_AUTH_ERROR)
       DebugPrintln("Auth Failed");
     else if (error == OTA_BEGIN_ERROR)
@@ -271,6 +276,7 @@ time_t prevDisplay = 0; // when the digital clock was displayed
 void loop()
 {
   ArduinoOTA.handle();
+  mpu6050.update();
 
   if (timeStatus() != timeNotSet)
   {
@@ -282,29 +288,44 @@ void loop()
       if (useIMU)
       {
         //query IMU
-        Wire.beginTransmission(MPU_addr);
-        Wire.write(0x3B); // starting with register 0x3B (ACCEL_XOUT_H)
-        Wire.endTransmission(false);
-        Wire.requestFrom(MPU_addr, 6, true);  // request a total of 14 registers
-        AcX = Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
-        AcY = Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
-        AcZ = Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
+        // Wire.beginTransmission(MPU_addr);
+        // Wire.write(0x3B); // starting with register 0x3B (ACCEL_XOUT_H)
+        // Wire.endTransmission(false);
+        // Wire.requestFrom(MPU_addr, 6, true);  // request a total of 6 registers
+        // AcX = Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
+        // AcY = Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+        // AcZ = Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
         // Tmp=Wire.read()<<8|Wire.read();  // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
         // GyX=Wire.read()<<8|Wire.read();  // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
         // GyY=Wire.read()<<8|Wire.read();  // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
         // GyZ=Wire.read()<<8|Wire.read();  // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
 
         //output
-        DebugPrint("AcX = ");
-        DebugPrint(AcX);
-        DebugPrint(" | AcY = ");
-        DebugPrint(AcY);
-        DebugPrint(" | AcZ = ");
-        DebugPrintln(AcZ);
+        // DebugPrint("AcX = ");
+        // DebugPrint(AcX);
+        // DebugPrint(" | AcY = ");
+        // DebugPrint(AcY);
+        // DebugPrint(" | AcZ = ");
+        // DebugPrint(AcZ);
+
+        // getAngle(AcX, AcY, AcZ);
+
+        // DebugPrint(" | Pitch = ");
+        // DebugPrint(pitch);
+        // DebugPrint(" | Roll = ");
+        // DebugPrint(roll);
+        // DebugPrint(" | Yaw = ");
+        // DebugPrintln(yaw);
         // DebugPrint(" | Tmp = "); DebugPrint(Tmp);
         // DebugPrint(" | GyX = "); DebugPrint(GyX);
         // DebugPrint(" | GyY = "); DebugPrint(GyY);
         // DebugPrint(" | GyZ = "); DebugPrintln(GyZ);
+        DebugPrint("angleX : ");
+        DebugPrint(mpu6050.getAngleX());
+        DebugPrint("\tangleY : ");
+        DebugPrint(mpu6050.getAngleY());
+        DebugPrint("\tangleZ : ");
+        DebugPrintln(mpu6050.getAngleZ());
       }
     }
   }
@@ -511,7 +532,7 @@ byte check_I2c(byte addr)
   byte error;
   Wire.beginTransmission(addr);
   error = Wire.endTransmission();
-  DebugPrintln(" ");
+
   if (error == 0)
   {
     DebugPrint(" Device Found at 0x");
@@ -525,4 +546,26 @@ byte check_I2c(byte addr)
     useIMU = false;
   }
   return error;
+}
+
+//convert the accel data to pitch/roll
+//Credit: comment from https://create.arduino.cc/projecthub/Nicholas_N/how-to-use-the-accelerometer-gyroscope-gy-521-6dfc19?f=1
+void getAngle(int Vx, int Vy, int Vz)
+{
+  double x = Vx;
+  double y = Vy;
+  double z = Vz;
+
+  //http://samselectronicsprojects.blogspot.com/2014/07/getting-roll-pitch-and-yaw-from-mpu-6050.html
+  // Roll = atan2(Y, Z) * 180 / PI;
+  // Pitch = atan2(X, sqrt(Y * Y + Z * Z)) * 180 / PI;
+
+  pitch = atan(x / sqrt((y * y) + (z * z)));
+  roll = atan(y / sqrt((x * x) + (z * z)));
+  yaw = atan(z / sqrt((x * x) + (z * z)));
+
+  //convert radians into degrees
+  pitch = pitch * (180.0 / 3.14);
+  roll = roll * (180.0 / 3.14);
+  yaw = yaw * (180.0 / 3.14);
 }
