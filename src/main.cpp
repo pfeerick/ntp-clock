@@ -17,15 +17,15 @@ Oak Pin ^ P0  ^ P1  ^ P2  ^ P3  ^ P4  ^ P5  ^ P6  ^ P7  ^ P8  ^ P9  ^ P10 ^ P11 
 GPIO    | 2   | 5   | 0   | 3   | 1   | 4   | 15  | 13  | 12  | 14  | 16  | 17  |
 
 
-          Enable    |      VIN
-          Reset     |      GND
-    P11 / A0  / 17  |  4 / P5        A?
-D  Wake / P10 / 16  |  1 / P4 / TX
-D  SCLK / P9  / 14  |  3 / P3 / RX
-D  MISO / P8  / 12  |  0 / P2 / SCL  B
-D  MOSI / P7  / 13  |  5 / P1 / LED  
-     SS / P6  / 15  |  2 / P0 / SDA  A?
-          GND       |      VCC
+          Enable    |      VIN        X - Provide 5v to rest of circuit
+          Reset     |      GND        X
+    P11 / A0  / 17  |  4 / P5         A?
+D  Wake / P10 / 16  |  1 / P4 / TX    TX - don't hold low
+D  SCLK / P9  / 14  |  3 / P3 / RX    RX
+   MISO / P8  / 12  |  0 / P2 / SCL   B  - don't hold low
+D  MOSI / P7  / 13  |  5 / P1 / LED   LED
+     SS / P6  / 15  |  2 / P0 / SDA   A? - don't hold low
+          GND       |      VCC        X - 3v3 - level shifter + AXDL
 
 D - Display
 B - Button
@@ -40,6 +40,9 @@ A - Accelerometer
    The CS pin from the 7219 can be connected to any GPIO, just define it in the code.
    The default is 16.
 */
+
+#define MPU_addr 0x68
+
 #include <Arduino.h>
 #include <ESP8266WiFi.h>          //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
 
@@ -58,11 +61,6 @@ A - Accelerometer
 #include <Max72xxPanel.h>
 
 #include <Wire.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_ADXL345_U.h>
-
-// initialise and set an unique identifier
-Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
 
 #include <Button.h>
 
@@ -101,11 +99,15 @@ int numberOfVerticalDisplays = 1;
 
 Max72xxPanel matrix = Max72xxPanel(pinCS, numberOfHorizontalDisplays, numberOfVerticalDisplays);
 
+bool useIMU = true;
+int16_t AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ;
+
 /************************* FUNCTION PROTOTYPES ******************************/
 time_t getNtpTime();
 void digitalClockDisplay();
 void printDigits(int digits);
 void sendNTPpacket(IPAddress &address);
+byte check_I2c(byte addr);
 
 void configModeCallback (WiFiManager *myWiFiManager) {
   matrix.fillScreen(LOW);//Empty the screen
@@ -119,7 +121,7 @@ void configModeCallback (WiFiManager *myWiFiManager) {
 }
 
 void setup() {
-  DebugBegin(74880);
+  DebugBegin(115200);
   
   DebugPrintln("");
   DebugPrintln(F("ESP8266 NTP Clock loading..."));
@@ -151,30 +153,15 @@ void setup() {
   wifiManager.setDebugOutput(false);
 #endif
 
-  /* Initialise the ADXL345 sensor */
-  if(!accel.begin())
-  {
-    /* There was a problem detecting the ADXL345 ... check your connections */
-    Serial.println("Ooops, no ADXL345 detected ... Check your wiring!");
-    while(1);
-  }
+  // Initalise GY-521 / MPU-6050
+  Wire.begin(P0,P5); //SDA, SCL
+  
+  check_I2c(MPU_addr);
 
-  /* Set the range to whatever is appropriate for your project */
-  accel.setRange(ADXL345_RANGE_16_G);
-  // accel.setRange(ADXL345_RANGE_8_G);
-  // accel.setRange(ADXL345_RANGE_4_G);
-  // accel.setRange(ADXL345_RANGE_2_G);
-
-  /*
- // Get a new sensor event
-  sensors_event_t event; 
-  accel.getEvent(&event);
- 
- // Display the results (acceleration is measured in m/s^2)
-  Serial.print("X: "); Serial.print(event.acceleration.x); Serial.print("  ");
-  Serial.print("Y: "); Serial.print(event.acceleration.y); Serial.print("  ");
-  Serial.print("Z: "); Serial.print(event.acceleration.z); Serial.print("  ");Serial.println("m/s^2 ");
-  */
+  Wire.beginTransmission(MPU_addr);
+  Wire.write(0x6B);  // PWR_MGMT_1 register
+  Wire.write(0);     // set to zero (wakes up the MPU-6050)
+  Wire.endTransmission(true);
 
   matrix.fillScreen(LOW);//Empty the screen
   matrix.setCursor(0, 0); //Move the cursor to the end of the screen
@@ -272,6 +259,30 @@ void loop() {
     if (now() != prevDisplay) { //update the display only if time has changed
       prevDisplay = now();
       digitalClockDisplay();
+
+      if (useIMU) {
+        //query IMU
+        Wire.beginTransmission(MPU_addr);
+        Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
+        Wire.endTransmission(false);
+        Wire.requestFrom(MPU_addr,6,true);  // request a total of 14 registers
+        AcX=Wire.read()<<8|Wire.read();  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)    
+        AcY=Wire.read()<<8|Wire.read();  // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+        AcZ=Wire.read()<<8|Wire.read();  // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
+        // Tmp=Wire.read()<<8|Wire.read();  // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
+        // GyX=Wire.read()<<8|Wire.read();  // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
+        // GyY=Wire.read()<<8|Wire.read();  // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
+        // GyZ=Wire.read()<<8|Wire.read();  // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
+
+        //output
+        DebugPrint("AcX = "); DebugPrint(AcX);
+        DebugPrint(" | AcY = "); DebugPrint(AcY);
+        DebugPrint(" | AcZ = "); DebugPrintln(AcZ);
+        // DebugPrint(" | Tmp = "); DebugPrint(Tmp);  
+        // DebugPrint(" | GyX = "); DebugPrint(GyX);
+        // DebugPrint(" | GyY = "); DebugPrint(GyY);
+        // DebugPrint(" | GyZ = "); DebugPrintln(GyZ);      
+      }
     }
   }
 
@@ -461,4 +472,28 @@ void sendNTPpacket(IPAddress &address)
   udp.beginPacket(address, 123); //NTP requests are to port 123
   udp.write(packetBuffer, NTP_PACKET_SIZE);
   udp.endPacket();
+}
+
+byte check_I2c(byte addr)
+{
+   // We are using the return value of
+  // the Write.endTransmisstion to see if
+  // a device did acknowledge to the address.
+  byte error;
+  Wire.beginTransmission(addr);
+  error = Wire.endTransmission();
+  DebugPrintln(" ");
+  if (error == 0)
+    {
+      DebugPrint(" Device Found at 0x");
+      DebugPrintln(addr,HEX);
+      useIMU = true; 
+    }
+  else
+    {
+      DebugPrint(" No Device Found at 0x");
+      DebugPrintln(addr,HEX);
+      useIMU = false;
+    }
+  return error;
 }
