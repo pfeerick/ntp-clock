@@ -9,6 +9,28 @@
    You will need wire the ESP8266's hardware SPI to the MAX7219.
    For most ESP8266 this will be as follows:
 
+  Pins 0, 1, 2 and 4 must not be held low at boot.
+  Pin 6 must not be held high at boot.
+
+===== Oak Pin to ESP8266 GPIO Mapping =====
+Oak Pin ^ P0  ^ P1  ^ P2  ^ P3  ^ P4  ^ P5  ^ P6  ^ P7  ^ P8  ^ P9  ^ P10 ^ P11 ^
+GPIO    | 2   | 5   | 0   | 3   | 1   | 4   | 15  | 13  | 12  | 14  | 16  | 17  |
+
+
+          Enable    |      VIN
+          Reset     |      GND
+    P11 / A0  / 17  |  4 / P5        A?
+D  Wake / P10 / 16  |  1 / P4 / TX
+D  SCLK / P9  / 14  |  3 / P3 / RX
+D  MISO / P8  / 12  |  0 / P2 / SCL  B
+D  MOSI / P7  / 13  |  5 / P1 / LED  
+     SS / P6  / 15  |  2 / P0 / SDA  A?
+          GND       |      VCC
+
+D - Display
+B - Button
+A - Accelerometer
+
    SPI CLK  = GPIO14
    SPI MOSI = GPIO13
    SPI MISO = GPIO12
