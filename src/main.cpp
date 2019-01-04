@@ -41,6 +41,8 @@ A - Accelerometer
    The default is 16.
 */
 
+#define HOSTNAME "ntp-clock-mk2"
+
 #include <Arduino.h>
 #include <ESP8266WiFi.h> //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
 
@@ -240,7 +242,7 @@ void setup()
     matrix.write();
   });
 
-  ArduinoOTA.setHostname("ntp-clock-dev");
+  ArduinoOTA.setHostname(HOSTNAME);
   ArduinoOTA.begin();
 
   DebugPrintln("*OTA: Ready");
