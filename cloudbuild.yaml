@@ -5,4 +5,4 @@ steps:
 artifacts: 
   objects: 
     location: 'gs://$PROJECT_ID-firmwares/$TAG_NAME'
-    paths: ['/workspace/.pioenvs/esp8266/firmware_esp8266.bin']
+    paths: ['/workspace/.pioenvs/oak/firmware.bin']
