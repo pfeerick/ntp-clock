@@ -114,18 +114,8 @@ void digitalClockDisplay();
 void printDigits(int digits);
 void sendNTPpacket(IPAddress &address);
 void setDisplayOrientation();
-
-void configModeCallback(WiFiManager *myWiFiManager)
-{
-  matrix.fillScreen(LOW); //Empty the screen
-  matrix.setCursor(0, 0); //Move the cursor to the end of the screen
-  matrix.print("WM CFG");
-  matrix.write();
-
-  DebugPrintln("Entered config mode");
-  DebugPrintln(WiFi.softAPIP());
-  DebugPrintln(myWiFiManager->getConfigPortalSSID());
-}
+void setupOTA();
+void setupWifi();
 
 void setup()
 {
@@ -162,92 +152,13 @@ void setup()
   matrix.setTextWrap(false);
   matrix.setTextColor(HIGH);
 
-  WiFiManager wifiManager;
-
-  wifiManager.setAPCallback(configModeCallback);
-  //wifiManager.setConfigPortalTimeout(180);
-
-#ifndef DEBUG
-  wifiManager.setDebugOutput(false);
-#endif
-
-  matrix.fillScreen(LOW); //Empty the screen
-  matrix.setCursor(0, 0); //Move the cursor to the end of the screen
-  matrix.print("WiFi");
-  matrix.write();
-
-  if (!wifiManager.autoConnect())
-  {
-    DebugPrintln("Failed to connect and hit timeout");
-    //reset and try again, or maybe put it to deep sleep
-    ESP.reset();
-    delay(1000);
-  }
+  setupWifi();
 
   // enable light modem sleep
   //wifi_set_sleep_type(LIGHT_SLEEP_T);
   //WiFi.setSleepMode(WIFI_LIGHT_SLEEP);
 
-  ArduinoOTA.onStart([]() {
-    DebugPrintln("OTA Programming Start");
-    matrix.fillScreen(LOW); //Empty the screen
-    matrix.setCursor(0, 0); //Move the cursor to the end of the screen
-    matrix.print("OTA");
-    matrix.write();
-  });
-
-  ArduinoOTA.onEnd([]() {
-    DebugPrintln("\nOTA Programming End");
-    matrix.fillScreen(LOW); //Empty the screen
-    matrix.setCursor(0, 0); //Move the cursor to the end of the screen
-    matrix.print("DONE!");
-    matrix.write();
-  });
-
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    DebugPrintf("Progress: %u%%\r", (progress / (total / 100)));
-
-    matrix.fillScreen(LOW); //Empty the screen
-    matrix.setCursor(0, 0); //Move the cursor to the end of the screen
-    matrix.print("P");
-
-    //narrow space colon
-    matrix.drawPixel(7, 2, HIGH);
-    matrix.drawPixel(7, 4, HIGH);
-
-    matrix.setCursor(9, 0);
-    if ((progress / (total / 100)) < 10)
-    {
-      matrix.print("0");
-    }
-    matrix.print((progress / (total / 100)));
-    matrix.print("%");
-    matrix.write();
-  });
-
-  ArduinoOTA.onError([](ota_error_t error) {
-    DebugPrintf("Error[%u]: ", error);
-
-    if (error == OTA_AUTH_ERROR)
-      DebugPrintln("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR)
-      DebugPrintln("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR)
-      DebugPrintln("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR)
-      DebugPrintln("Receive Failed");
-    else if (error == OTA_END_ERROR)
-      DebugPrintln("End Failed");
-
-    matrix.fillScreen(LOW); //Empty the screen
-    matrix.setTextSize(1);
-    matrix.setCursor(0, 0); //Move the cursor to the end of the screen
-    matrix.print("OTA ER");
-    matrix.write();
-  });
-
-  ArduinoOTA.setHostname(HOSTNAME);
-  ArduinoOTA.begin();
+  setupOTA();
 
   DebugPrintln("*OTA: Ready");
 
@@ -557,4 +468,105 @@ void setDisplayOrientation()
     matrix.setRotation(3, 1);
 
   }
+}
+
+void setupOTA()
+{
+  ArduinoOTA.onStart([]() {
+    DebugPrintln("OTA Programming Start");
+    matrix.fillScreen(LOW); //Empty the screen
+    matrix.setCursor(0, 0); //Move the cursor to the end of the screen
+    matrix.print("OTA");
+    matrix.write();
+  });
+
+  ArduinoOTA.onEnd([]() {
+    DebugPrintln("\nOTA Programming End");
+    matrix.fillScreen(LOW); //Empty the screen
+    matrix.setCursor(0, 0); //Move the cursor to the end of the screen
+    matrix.print("DONE!");
+    matrix.write();
+  });
+
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    DebugPrintf("Progress: %u%%\r", (progress / (total / 100)));
+
+    matrix.fillScreen(LOW); //Empty the screen
+    matrix.setCursor(0, 0); //Move the cursor to the end of the screen
+    matrix.print("P");
+
+    //narrow space colon
+    matrix.drawPixel(7, 2, HIGH);
+    matrix.drawPixel(7, 4, HIGH);
+
+    matrix.setCursor(9, 0);
+    if ((progress / (total / 100)) < 10)
+    {
+      matrix.print("0");
+    }
+    matrix.print((progress / (total / 100)));
+    matrix.print("%");
+    matrix.write();
+  });
+
+  ArduinoOTA.onError([](ota_error_t error) {
+    DebugPrintf("Error[%u]: ", error);
+
+    if (error == OTA_AUTH_ERROR)
+      DebugPrintln("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR)
+      DebugPrintln("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR)
+      DebugPrintln("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR)
+      DebugPrintln("Receive Failed");
+    else if (error == OTA_END_ERROR)
+      DebugPrintln("End Failed");
+
+    matrix.fillScreen(LOW); //Empty the screen
+    matrix.setTextSize(1);
+    matrix.setCursor(0, 0); //Move the cursor to the end of the screen
+    matrix.print("OTA ER");
+    matrix.write();
+  });
+
+  ArduinoOTA.setHostname(HOSTNAME);
+  ArduinoOTA.begin();
+}
+
+void setupWifi()
+{
+  WiFiManager wifiManager;
+
+  wifiManager.setAPCallback(configModeCallback);
+  //wifiManager.setConfigPortalTimeout(180);
+
+#ifndef DEBUG
+  wifiManager.setDebugOutput(false);
+#endif
+
+  matrix.fillScreen(LOW); //Empty the screen
+  matrix.setCursor(0, 0); //Move the cursor to the end of the screen
+  matrix.print("WiFi");
+  matrix.write();
+
+  if (!wifiManager.autoConnect())
+  {
+    DebugPrintln("Failed to connect and hit timeout");
+    //reset and try again, or maybe put it to deep sleep
+    ESP.reset();
+    delay(1000);
+  }  
+}
+
+void configModeCallback(WiFiManager *myWiFiManager)
+{
+  matrix.fillScreen(LOW); //Empty the screen
+  matrix.setCursor(0, 0); //Move the cursor to the end of the screen
+  matrix.print("WM CFG");
+  matrix.write();
+
+  DebugPrintln("Entered config mode");
+  DebugPrintln(WiFi.softAPIP());
+  DebugPrintln(myWiFiManager->getConfigPortalSSID());
 }
