@@ -41,7 +41,8 @@ A - Accelerometer
    The default is 16.
 */
 
-#define HOSTNAME "ntp-clock-2"
+//set by platfomio build env
+//#define HOSTNAME "ntp-clock-dev"
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h> //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
