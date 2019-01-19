@@ -410,7 +410,7 @@ void setDisplayOrientation()
     DebugPrint("angleY : ");
     DebugPrint(Y);
 
-    if (Y <= -40)
+    if (Y >= 40)
     {
       DebugPrintln("Display up");
 
@@ -426,7 +426,7 @@ void setDisplayOrientation()
       matrix.setPosition(2, 2, 0); // The third display is at <2, 0>
       matrix.setPosition(3, 3, 0); // And the last display is at <3, 0>
     }
-    else if (Y >= 40)
+    else if (Y <= -40)
     {
       DebugPrintln("Display down");
 
