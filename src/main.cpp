@@ -137,11 +137,10 @@ void setup()
   DebugPrintln(ESP.getFreeHeap());
   DebugPrintln("");
 
-// Initalise GY-521 / MPU-6050
+  // Initalise GY-521 / MPU-6050
   Wire.begin(P0, P5); //SDA, SCL
   mpu6050.begin();
   //mpu6050.calcGyroOffsets(true); //3 second delay
-
 
   //0 low, 15 high
   matrix.setIntensity(1); // Set brightness between 0 and 15
@@ -406,7 +405,7 @@ void setDisplayOrientation()
     // float X = mpu6050.getAngleX();
     float Y = mpu6050.getAngleY();
     // float Z = mpu6050.getAngleZ();
-    
+
     DebugPrint("angleY : ");
     DebugPrint(Y);
 
@@ -424,7 +423,7 @@ void setDisplayOrientation()
       matrix.setPosition(0, 0, 0); // The first display is at <0, 0>
       matrix.setPosition(1, 1, 0); // The second display is at <1, 0>
       matrix.setPosition(2, 2, 0); // The third display is at <2, 0>
-      matrix.setPosition(3, 3, 0); // And the last display is at <3, 0>      
+      matrix.setPosition(3, 3, 0); // And the last display is at <3, 0>
     }
     else if (Y >= 40)
     {
@@ -440,7 +439,7 @@ void setDisplayOrientation()
       matrix.setPosition(0, 3, 0); // The first display is at <3, 0>
       matrix.setPosition(1, 2, 0); // The second display is at <2, 0>
       matrix.setPosition(2, 1, 0); // The third display is at <1, 0>
-      matrix.setPosition(3, 0, 0); // And the last display is at <0, 0>        
+      matrix.setPosition(3, 0, 0); // And the last display is at <0, 0>
     }
     else
     {
@@ -456,9 +455,8 @@ void setDisplayOrientation()
       matrix.setPosition(0, 0, 0); // The first display is at <0, 0>
       matrix.setPosition(1, 1, 0); // The second display is at <1, 0>
       matrix.setPosition(2, 2, 0); // The third display is at <2, 0>
-      matrix.setPosition(3, 3, 0); // And the last display is at <3, 0>        
+      matrix.setPosition(3, 3, 0); // And the last display is at <3, 0>
     }
-
   }
   else
   {
@@ -466,7 +464,6 @@ void setDisplayOrientation()
     matrix.setRotation(1, 1);
     matrix.setRotation(2, 1);
     matrix.setRotation(3, 1);
-
   }
 }
 
@@ -556,7 +553,7 @@ void setupWifi()
     //reset and try again, or maybe put it to deep sleep
     ESP.reset();
     delay(1000);
-  }  
+  }
 }
 
 void configModeCallback(WiFiManager *myWiFiManager)
