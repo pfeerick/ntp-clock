@@ -201,18 +201,19 @@ void loop()
 
   if (button.pressed())
   {
+    DebugPrintln("Button Pressed!");
+
     String tape = "Let go of me!";
     int wait = 30; // In milliseconds - was 20
 
-    unsigned int spacer = 1;
-    unsigned int width = 5 + spacer; // The font width is 5 pixels
+    int spacer = 1;
+    int width = 5 + spacer; // The font width is 5 pixels
 
-    for (unsigned int i = 0; i < width * tape.length() + matrix.width() - 1 - spacer; i++)
+    for (int i = 0; i < width * tape.length() + matrix.width() - 1 - spacer; i++)
     {
-
       matrix.fillScreen(LOW);
 
-      unsigned int letter = i / width;
+      int letter = i / width;
       int x = (matrix.width() - 1) - i % width;
       int y = (matrix.height() - 8) / 2; // center the text vertically
 
@@ -228,7 +229,6 @@ void loop()
       }
 
       matrix.write(); // Send bitmap to display
-
       delay(wait);
     }
   }
@@ -408,7 +408,7 @@ void setDisplayOrientation()
     // float Z = mpu6050.getAngleZ();
 
     DebugPrint("angleY : ");
-    DebugPrint(Y);
+    DebugPrintln(Y);
 
     if (Y >= 40)
     {
