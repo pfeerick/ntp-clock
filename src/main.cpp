@@ -41,7 +41,7 @@ A - Accelerometer
    The default is 16.
 */
 
-#define HOSTNAME "ntp-clock-dev"
+#define HOSTNAME "ntp-clock-2"
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h> //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
@@ -116,6 +116,7 @@ void sendNTPpacket(IPAddress &address);
 void setDisplayOrientation();
 void setupOTA();
 void setupWifi();
+void configModeCallback(WiFiManager *myWiFiManager);
 
 void setup()
 {
