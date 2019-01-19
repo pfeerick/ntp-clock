@@ -41,7 +41,7 @@ A - Accelerometer
    The default is 16.
 */
 
-#define HOSTNAME "ntp-clock-mk2"
+#define HOSTNAME "ntp-clock-dev"
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h> //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
@@ -66,6 +66,10 @@ MPU6050 mpu6050(Wire);
 
 #include <Button.h>
 Button button(0); // Connect your button between P2/GPIO0 and GND
+
+#include <elapsedMillis.h>
+elapsedMillis orientationCheck;
+const unsigned int orientationCheckInterval = 500;
 
 #define DEBUG
 #define DEBUG_OI Serial
@@ -109,6 +113,7 @@ time_t getNtpTime();
 void digitalClockDisplay();
 void printDigits(int digits);
 void sendNTPpacket(IPAddress &address);
+void setDisplayOrientation();
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {
@@ -142,13 +147,17 @@ void setup()
   DebugPrintln(ESP.getFreeHeap());
   DebugPrintln("");
 
+// Initalise GY-521 / MPU-6050
+  Wire.begin(P0, P5); //SDA, SCL
+  mpu6050.begin();
+  //mpu6050.calcGyroOffsets(true); //3 second delay
+
+
   //0 low, 15 high
   matrix.setIntensity(1); // Set brightness between 0 and 15
 
-  matrix.setRotation(0, 1); //you may have to change this section depending on your LED matrix setup
-  matrix.setRotation(1, 1);
-  matrix.setRotation(2, 1);
-  matrix.setRotation(3, 1);
+  setDisplayOrientation();
+
   matrix.setTextSize(1);
   matrix.setTextWrap(false);
   matrix.setTextColor(HIGH);
@@ -161,11 +170,6 @@ void setup()
 #ifndef DEBUG
   wifiManager.setDebugOutput(false);
 #endif
-
-  // Initalise GY-521 / MPU-6050
-  Wire.begin(P0, P5); //SDA, SCL
-  mpu6050.begin();
-  //mpu6050.calcGyroOffsets(true); //3 second delay
 
   matrix.fillScreen(LOW); //Empty the screen
   matrix.setCursor(0, 0); //Move the cursor to the end of the screen
@@ -269,22 +273,18 @@ void loop()
   ArduinoOTA.handle();
   mpu6050.update();
 
+  if (orientationCheck > orientationCheckInterval)
+  {
+    orientationCheck = 0; //reset counter
+    setDisplayOrientation();
+  }
+
   if (timeStatus() != timeNotSet)
   {
     if (now() != prevDisplay)
     { //update the display only if time has changed
       prevDisplay = now();
       digitalClockDisplay();
-
-      if (useIMU)
-      {
-        DebugPrint("angleX : ");
-        DebugPrint(mpu6050.getAngleX());
-        DebugPrint("\tangleY : ");
-        DebugPrint(mpu6050.getAngleY());
-        DebugPrint("\tangleZ : ");
-        DebugPrintln(mpu6050.getAngleZ());
-      }
     }
   }
 
@@ -322,7 +322,7 @@ void loop()
     }
   }
 
-  delay(100);
+  delay(10);
 }
 
 void digitalClockDisplay()
@@ -480,4 +480,81 @@ void sendNTPpacket(IPAddress &address)
   udp.beginPacket(address, 123); //NTP requests are to port 123
   udp.write(packetBuffer, NTP_PACKET_SIZE);
   udp.endPacket();
+}
+
+void setDisplayOrientation()
+{
+  if (useIMU)
+  {
+    for (int i = 0; i < 10; i++)
+    {
+      mpu6050.update();
+      delay(5);
+    }
+
+    // float X = mpu6050.getAngleX();
+    float Y = mpu6050.getAngleY();
+    // float Z = mpu6050.getAngleZ();
+    
+    DebugPrint("angleY : ");
+    DebugPrint(Y);
+
+    if (Y <= -40)
+    {
+      DebugPrintln("Display up");
+
+      //right way up
+      matrix.setRotation(0, 1); //you may have to change this section depending on your LED matrix setup
+      matrix.setRotation(1, 1);
+      matrix.setRotation(2, 1);
+      matrix.setRotation(3, 1);
+
+      //left to right
+      matrix.setPosition(0, 0, 0); // The first display is at <0, 0>
+      matrix.setPosition(1, 1, 0); // The second display is at <1, 0>
+      matrix.setPosition(2, 2, 0); // The third display is at <2, 0>
+      matrix.setPosition(3, 3, 0); // And the last display is at <3, 0>      
+    }
+    else if (Y >= 40)
+    {
+      DebugPrintln("Display down");
+
+      //upside down
+      matrix.setRotation(0, 3); //you may have to change this section depending on your LED matrix setup
+      matrix.setRotation(1, 3);
+      matrix.setRotation(2, 3);
+      matrix.setRotation(3, 3);
+
+      //now right to left
+      matrix.setPosition(0, 3, 0); // The first display is at <3, 0>
+      matrix.setPosition(1, 2, 0); // The second display is at <2, 0>
+      matrix.setPosition(2, 1, 0); // The third display is at <1, 0>
+      matrix.setPosition(3, 0, 0); // And the last display is at <0, 0>        
+    }
+    else
+    {
+      DebugPrintln("Display don't know");
+
+      //right way up
+      matrix.setRotation(0, 1); //you may have to change this section depending on your LED matrix setup
+      matrix.setRotation(1, 1);
+      matrix.setRotation(2, 1);
+      matrix.setRotation(3, 1);
+
+      //left to right
+      matrix.setPosition(0, 0, 0); // The first display is at <0, 0>
+      matrix.setPosition(1, 1, 0); // The second display is at <1, 0>
+      matrix.setPosition(2, 2, 0); // The third display is at <2, 0>
+      matrix.setPosition(3, 3, 0); // And the last display is at <3, 0>        
+    }
+
+  }
+  else
+  {
+    matrix.setRotation(0, 1); //you may have to change this section depending on your LED matrix setup
+    matrix.setRotation(1, 1);
+    matrix.setRotation(2, 1);
+    matrix.setRotation(3, 1);
+
+  }
 }
