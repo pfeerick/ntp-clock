@@ -1,0 +1,8 @@
+steps:
+- name: 'sglahn/platformio-core:latest'  
+  dir: .
+  args: ['run']  
+artifacts: 
+  objects: 
+    location: 'gs://$PROJECT_ID-firmwares/$TAG_NAME'
+    paths: ['/workspace/.pioenvs/oak/firmware.bin']
