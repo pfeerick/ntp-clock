@@ -72,6 +72,8 @@ Button button(0); // Connect your button between P2/GPIO0 and GND
 elapsedMillis orientationCheck;
 const unsigned int orientationCheckInterval = 500;
 
+#include <Streaming.h>
+
 #define DEBUG
 #define DEBUG_OI Serial
 
@@ -122,22 +124,37 @@ void configModeCallback(WiFiManager *myWiFiManager);
 void setup()
 {
   DebugBegin(115200);
+  #ifdef DEBUG
+  Serial<<endl<<endl;
+  Serial<<F("ESP8266 NTP Clock loading...")<<endl;
+  Serial<<F("Build date/time:         " __DATE__ " / " __TIME__)<<endl;
+  Serial<<F("Reset info:              ")<<ESP.getResetInfo()<<endl;
+  Serial<<F("Boot mode:               ")<<ESP.getBootMode()<<endl;
+  Serial<<F("Boot version:            ")<<ESP.getBootVersion()<<endl;
+  Serial<<F("Reset cause:             ")<<ESP.getResetReason()<<endl;
+  Serial<<F("CPU frequency (MHz):     ")<<ESP.getCpuFreqMHz()<<endl;
+  Serial<<F("Core version:            ")<<ESP.getCoreVersion()<<endl;
+  Serial<<F("SDK version:             ")<<ESP.getSdkVersion()<<endl;
+  
+  Serial<<F("Sketch size/left:        ")<<ESP.getSketchSize()<<F(" / ") << ESP.getFreeSketchSpace()<<endl;
+  Serial<<F("Sketch usage:            ")<<(ESP.getFreeSketchSpace()+ESP.getSketchSize())/ESP.getSketchSize()<<F("%")<<endl;
+  Serial<<F("Sketch MD5:              ")<<ESP.getSketchMD5()<<endl;
+  Serial<<F("Free heap:               ")<<ESP.getFreeHeap()<<endl<<endl; 
+  #endif
 
-  DebugPrintln("");
-  DebugPrintln(F("ESP8266 NTP Clock loading..."));
-  DebugPrint("Compiled: " __DATE__ ", " __TIME__ ", Arduino IDE v");
-  DebugPrintln(ARDUINO, DEC);
-  DebugPrint(F("Core version: "));
-  DebugPrintln(ESP.getCoreVersion());
-  DebugPrint(F("SDK version: "));
-  DebugPrintln(ESP.getSdkVersion());
-  DebugPrint(F("Chip ID: "));
-  DebugPrintln(ESP.getChipId());
-  DebugPrint(F("Reset reason: "));
-  DebugPrintln(ESP.getResetReason());
-  DebugPrint(F("Heap free: "));
-  DebugPrintln(ESP.getFreeHeap());
-  DebugPrintln("");
+  // DebugPrint("Compiled: " __DATE__ ", " __TIME__ ", Arduino IDE v");
+  // DebugPrintln(ARDUINO, DEC);
+  // DebugPrint(F("Core version: "));
+  // DebugPrintln(ESP.getCoreVersion());
+  // DebugPrint(F("SDK version: "));
+  // DebugPrintln(ESP.getSdkVersion());
+  // DebugPrint(F("Chip ID: "));
+  // DebugPrintln(ESP.getChipId());
+  // DebugPrint(F("Reset reason: "));
+  // DebugPrintln(ESP.getResetReason());
+  // DebugPrint(F("Heap free: "));
+  // DebugPrintln(ESP.getFreeHeap());
+  // DebugPrintln("");
 
   // Initalise GY-521 / MPU-6050
   Wire.begin(P0, P5); //SDA, SCL
