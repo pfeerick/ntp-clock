@@ -42,7 +42,7 @@ A - Accelerometer
 */
 
 //set by platfomio build env
-//#define HOSTNAME "ntp-clock-dev"
+#define HOSTNAME "ntp-clock-2"
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h> //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
