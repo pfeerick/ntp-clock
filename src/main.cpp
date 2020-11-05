@@ -41,12 +41,9 @@ A - Accelerometer
    The default is 16.
 */
 
-//set by platfomio build env
-#define HOSTNAME "ntp-clock-2"
-
 #include <Arduino.h>
-#include <ESP8266WiFi.h> //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
 
+#include <ESP8266WiFi.h>      //ESP8266 Core WiFi Library
 #include <DNSServer.h>        //Local DNS Server used for redirecting all requests to the configuration portal
 #include <ESP8266WebServer.h> //Local WebServer used to serve the configuration portal
 #include <WiFiManager.h>      //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
@@ -57,7 +54,8 @@ A - Accelerometer
 #include <ArduinoOTA.h> // For OTA programming
 #include <TimeLib.h>    // Friendly Time formatting and timekeeping
 
-#include <SPI.h> // For LED Panel
+#include <SPI.h>
+#include <Adafruit_I2CDevice.h>
 #include <Adafruit_GFX.h>
 #include <Max72xxPanel.h>
 
@@ -124,23 +122,25 @@ void configModeCallback(WiFiManager *myWiFiManager);
 void setup()
 {
   DebugBegin(115200);
-  #ifdef DEBUG
-  Serial<<endl<<endl;
-  Serial<<F("ESP8266 NTP Clock loading...")<<endl;
-  Serial<<F("Build date/time:         " __DATE__ " / " __TIME__)<<endl;
-  Serial<<F("Reset info:              ")<<ESP.getResetInfo()<<endl;
-  Serial<<F("Boot mode:               ")<<ESP.getBootMode()<<endl;
-  Serial<<F("Boot version:            ")<<ESP.getBootVersion()<<endl;
-  Serial<<F("Reset cause:             ")<<ESP.getResetReason()<<endl;
-  Serial<<F("CPU frequency (MHz):     ")<<ESP.getCpuFreqMHz()<<endl;
-  Serial<<F("Core version:            ")<<ESP.getCoreVersion()<<endl;
-  Serial<<F("SDK version:             ")<<ESP.getSdkVersion()<<endl;
-  
-  Serial<<F("Sketch size/left:        ")<<ESP.getSketchSize()<<F(" / ") << ESP.getFreeSketchSpace()<<endl;
-  Serial<<F("Sketch usage:            ")<<(ESP.getFreeSketchSpace()+ESP.getSketchSize())/ESP.getSketchSize()<<F("%")<<endl;
-  Serial<<F("Sketch MD5:              ")<<ESP.getSketchMD5()<<endl;
-  Serial<<F("Free heap:               ")<<ESP.getFreeHeap()<<endl<<endl; 
-  #endif
+#ifdef DEBUG
+  Serial << endl
+         << endl;
+  Serial << F("ESP8266 NTP Clock loading...") << endl;
+  Serial << F("Build date/time:         " __DATE__ " / " __TIME__) << endl;
+  Serial << F("Reset info:              ") << ESP.getResetInfo() << endl;
+  Serial << F("Boot mode:               ") << ESP.getBootMode() << endl;
+  Serial << F("Boot version:            ") << ESP.getBootVersion() << endl;
+  Serial << F("Reset cause:             ") << ESP.getResetReason() << endl;
+  Serial << F("CPU frequency (MHz):     ") << ESP.getCpuFreqMHz() << endl;
+  Serial << F("Core version:            ") << ESP.getCoreVersion() << endl;
+  Serial << F("SDK version:             ") << ESP.getSdkVersion() << endl;
+
+  Serial << F("Sketch size/left:        ") << ESP.getSketchSize() << F(" / ") << ESP.getFreeSketchSpace() << endl;
+  Serial << F("Sketch usage:            ") << (ESP.getFreeSketchSpace() + ESP.getSketchSize()) / ESP.getSketchSize() << F("%") << endl;
+  Serial << F("Sketch MD5:              ") << ESP.getSketchMD5() << endl;
+  Serial << F("Free heap:               ") << ESP.getFreeHeap() << endl
+         << endl;
+#endif
 
   // DebugPrint("Compiled: " __DATE__ ", " __TIME__ ", Arduino IDE v");
   // DebugPrintln(ARDUINO, DEC);
