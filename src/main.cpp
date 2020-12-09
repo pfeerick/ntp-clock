@@ -157,7 +157,12 @@ void setup()
   // DebugPrintln("");
 
   // Initalise GY-521 / MPU-6050
+  #if defined ARDUINO_ESP8266_WEMOS_OAK
   Wire.begin(P0, P5); //SDA, SCL
+  #elif defined ARDUINO_ESP8266_WEMOS_D1MINI
+  Wire.begin(D2, D1); //SDA, SCL
+  #endif
+
   mpu6050.begin();
   //mpu6050.calcGyroOffsets(true); //3 second delay
 
