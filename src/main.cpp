@@ -1,44 +1,64 @@
-/*
-   Some useful notes from : https://github.com/Legorobotdude/esp8266-LED-matrix-clock
-   found on 21/08/2017 after having written WM, OTA and NTP code.
-
-   Any ESP8266 module should work, just make sure you are using the right SPI pins for your module.
-   You will also need a bi-directional logic level converter since the matrix runs at 5v and the
-   ESP8266 at 3.3v.
-
-   You will need wire the ESP8266's hardware SPI to the MAX7219.
-   For most ESP8266 this will be as follows:
-
-  Pins 0, 1, 2 and 4 must not be held low at boot.
-  Pin 6 must not be held high at boot.
-
-===== Oak Pin to ESP8266 GPIO Mapping =====
-Oak Pin ^ P0  ^ P1  ^ P2  ^ P3  ^ P4  ^ P5  ^ P6  ^ P7  ^ P8  ^ P9  ^ P10 ^ P11 ^
-GPIO    | 2   | 5   | 0   | 3   | 1   | 4   | 15  | 13  | 12  | 14  | 16  | 17  |
-
-
-          Enable    |      VIN        X - Provide 5v to rest of circuit
-          Reset     |      GND        X
-    P11 / A0  / 17  |  4 / P5         A?
-D  Wake / P10 / 16  |  1 / P4 / TX    TX - don't hold low
-D  SCLK / P9  / 14  |  3 / P3 / RX    RX
-   MISO / P8  / 12  |  0 / P2 / SCL   B  - don't hold low
-D  MOSI / P7  / 13  |  5 / P1 / LED   LED
-     SS / P6  / 15  |  2 / P0 / SDA   A? - don't hold low
-          GND       |      VCC        X - 3v3 - level shifter + AXDL
-
-D - Display
-B - Button
-A - Accelerometer
-
-   SPI CLK  = GPIO14
-   SPI MOSI = GPIO13
-   SPI MISO = GPIO12
-
-   Wire CLK to CLK and MOSI to DIN.
-
-   The CS pin from the 7219 can be connected to any GPIO, just define it in the code.
-   The default is 16.
+/**
+ * This file is part of the NTP LED Matrix Clock.
+ * Copyright (c) Peter Feerick
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * GPIOs usage:
+ * 
+ * Wemos D1 Mini:
+ 
+ *      /------------------------\   
+ *      |      |-|-|_|-|_|-|     |
+ *      |      | |         |     |
+ *  [ ] | RST              |  TX | [ ]
+ *  [ ] | A0   |-----------|  RX | [ ]
+ *  [M] | D0   |           |  D1 | [G]
+ *  [M] | D5   |           |  D2 | [G]
+ *  [ ] | D6   |  ESP8266  |  D3 | [B]
+ *  [M] | D7   |           |  D4 | [ ]
+ *  [ ] | D8   |___________|   G | [ ]
+ *  [ ] | 3V3                 5V | [ ]
+ *       \                       |
+ *       [| RST          D1 Mini |
+ *        |______|  USB  |_______|
+ * 
+ * [M] MAX72xx Panel
+ *     IO16 - D0 - CS
+ *     IO14 - D5 - CLK
+ *     IO13 - D7 - MOSI
+ * 
+ * [G] GY-521 / MPU-6050
+ *     IO5  - D1 - SDA/XDA
+ *     IO4  - D2 - SCL
+ *
+ * [B] Button
+ *     IO0  - D3  - Button -> GND
+ * 
+ * Digistump Oak:  
+ *           Enable    |      VIN        X - Provide 5v to rest of circuit
+ *           Reset     |      GND        X
+ *     P11 / A0  / 17  |  4 / P5         A
+ * D  Wake / P10 / 16  |  1 / P4 / TX    TX - don't hold low at boot
+ * D  SCLK / P9  / 14  |  3 / P3 / RX    RX
+ *    MISO / P8  / 12  |  0 / P2 / SCL   B  - don't hold low at boot
+ * D  MOSI / P7  / 13  |  5 / P1 / LED   LED
+ *      SS / P6  / 15  |  2 / P0 / SDA   A - don't hold low at boot
+ *           GND       |      VCC        X - 3v3 - level shifter + AXDL
+ * 
+ * D - Display
+ * B - Button
+ * A - Accelerometer
 */
 
 #define DEBUG true
@@ -73,7 +93,7 @@ unsigned int localPort = 2390; // local port to listen for UDP packets
 
 /************************* LED MATRIX SETUP *********************************/
 int pinCS = 16;                     // Attach CS to this pin, DIN to MOSI and CLK to SCK (cf http://arduino.cc/en/Reference/SPI )
-int numberOfHorizontalDisplays = 4; //adjust this to your setup
+int numberOfHorizontalDisplays = 4; // Adjust this to your setup
 int numberOfVerticalDisplays = 1;
 
 Max72xxPanel matrix = Max72xxPanel(pinCS, numberOfHorizontalDisplays, numberOfVerticalDisplays);
@@ -82,7 +102,7 @@ bool useIMU = true;
 int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
 double pitch, roll, yaw;
 
-Button button(0); // Connect your button between P2/GPIO0 and GND
+Button button(0); // Connect your button between GPIO0 and GND
 MPU6050 mpu6050(Wire);
 elapsedMillis orientationCheck;
 const unsigned int orientationCheckInterval = 500;
