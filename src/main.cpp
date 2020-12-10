@@ -41,38 +41,27 @@ A - Accelerometer
    The default is 16.
 */
 
-#include <Arduino.h>
-
-#include <ESP8266WiFi.h>      //ESP8266 Core WiFi Library
-#include <DNSServer.h>        //Local DNS Server used for redirecting all requests to the configuration portal
-#include <ESP8266WebServer.h> //Local WebServer used to serve the configuration portal
-#include <WiFiManager.h>      //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
-
-#include <ESP8266mDNS.h>
-#include <WiFiUdp.h> // For NTP
-
-#include <ArduinoOTA.h> // For OTA programming
-#include <TimeLib.h>    // Friendly Time formatting and timekeeping
-
-#include <SPI.h>
-#include <Adafruit_I2CDevice.h>
-#include <Adafruit_GFX.h>
-#include <Max72xxPanel.h>
-
-#include <Wire.h>
-#include <MPU6050_tockn.h>
-MPU6050 mpu6050(Wire);
-
-#include <Button.h>
-Button button(0); // Connect your button between P2/GPIO0 and GND
-
-#include <elapsedMillis.h>
-elapsedMillis orientationCheck;
-const unsigned int orientationCheckInterval = 500;
-
 #define DEBUG true
 #define DEBUG_OI Serial
-#include <debug-helper.h>
+
+#include <Arduino.h>            // Arduino core functions
+#include <ESP8266WiFi.h>        // ESP8266 Core WiFi Library
+#include <DNSServer.h>          // Local DNS Server used for redirecting all requests to the configuration portal
+#include <ESP8266WebServer.h>   // Local WebServer used to serve the configuration portal
+#include <WiFiManager.h>        // WiFi Configuration Portal
+#include <ESP8266mDNS.h>        // Multicast DNS (for OTA)
+#include <WiFiUdp.h>            // UDP support (for NTP)
+#include <ArduinoOTA.h>         // OTA programming support
+#include <TimeLib.h>            // Friendly time formatting and timekeeping
+#include <SPI.h>                // SPI device support
+#include <Adafruit_I2CDevice.h> // Adafruit I2C device support
+#include <Adafruit_GFX.h>       // Adafruit GFX routines
+#include <Max72xxPanel.h>       // MAX72xx multiplexer
+#include <Wire.h>               // I2C device support
+#include <MPU6050_tockn.h>      // MPU6050 Gyro + Accelometer
+#include <Button.h>             // Simple button library
+#include <elapsedMillis.h>      // Non-blocking delays / event timers
+#include <debug-helper.h>       // Debug macros
 
 /************************* NTP SETUP ****************************************/
 static const char ntpServerName[] = "au.pool.ntp.org";
@@ -93,6 +82,11 @@ bool useIMU = true;
 int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
 double pitch, roll, yaw;
 
+Button button(0); // Connect your button between P2/GPIO0 and GND
+MPU6050 mpu6050(Wire);
+elapsedMillis orientationCheck;
+const unsigned int orientationCheckInterval = 500;
+
 /************************* FUNCTION PROTOTYPES ******************************/
 time_t getNtpTime();
 void digitalClockDisplay();
@@ -108,12 +102,12 @@ void setup()
   DebugBegin(115200);
   DebugInfo();
 
-  // Initalise GY-521 / MPU-6050
-  #if defined ARDUINO_ESP8266_WEMOS_OAK
+// Initalise GY-521 / MPU-6050
+#if defined ARDUINO_ESP8266_WEMOS_OAK
   Wire.begin(P0, P5); //SDA, SCL
-  #elif defined ARDUINO_ESP8266_WEMOS_D1MINI
+#elif defined ARDUINO_ESP8266_WEMOS_D1MINI
   Wire.begin(D2, D1); //SDA, SCL
-  #endif
+#endif
 
   mpu6050.begin();
   //mpu6050.calcGyroOffsets(true); //3 second delay
@@ -242,8 +236,7 @@ void digitalClockDisplay()
   matrix.setCursor(27, 0);
   if (isAM())
   {
-    //matrix.print("A");
-
+    // draw an A
     matrix.drawPixel(28, 2, HIGH); // *
     matrix.drawPixel(28, 3, HIGH); // *
     matrix.drawPixel(28, 4, HIGH); // *
@@ -264,7 +257,7 @@ void digitalClockDisplay()
   }
   else
   {
-    // matrix.print("P");
+    // draw a P
     matrix.drawPixel(28, 1, HIGH); // *
     matrix.drawPixel(28, 2, HIGH); // *
     matrix.drawPixel(28, 3, HIGH); // *
@@ -284,7 +277,7 @@ void digitalClockDisplay()
 
   matrix.write();
 
-  // digital clock display of the time
+  // print time to debug also
   DebugPrint(hour());
   printDigits(minute());
   printDigits(second());
@@ -512,7 +505,7 @@ void setupWifi()
   WiFiManager wifiManager;
 
   wifiManager.setAPCallback(configModeCallback);
-  //wifiManager.setConfigPortalTimeout(180);
+  wifiManager.setConfigPortalTimeout(300); // 5 minute timout
 
 #ifndef DEBUG
   wifiManager.setDebugOutput(false);
@@ -526,7 +519,7 @@ void setupWifi()
   if (!wifiManager.autoConnect())
   {
     DebugPrintln("Failed to connect and hit timeout");
-    //reset and try again, or maybe put it to deep sleep
+    //reset and try again
     ESP.reset();
     delay(1000);
   }
