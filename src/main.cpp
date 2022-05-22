@@ -64,6 +64,10 @@
 #define DEBUG true
 #define DEBUG_OI Serial
 
+#define OTA_HOSTNAME "NTP_Clock"
+#define VERSION "0.5.0"
+#define DEVICE_NAME "NTP Clock"
+
 #include <Arduino.h>            // Arduino core functions
 #include <ESP8266WiFi.h>        // ESP8266 Core WiFi Library
 #include <DNSServer.h>          // Local DNS Server used for redirecting all requests to the configuration portal
@@ -82,6 +86,8 @@
 #include <Button.h>             // Simple button library
 #include <elapsedMillis.h>      // Non-blocking delays / event timers
 #include <debug-helper.h>       // Debug macros
+
+#include "webpages.h"           // Web page source code
 
 /************************* NTP SETUP ****************************************/
 static const char ntpServerName[] = "au.pool.ntp.org";
@@ -102,10 +108,19 @@ bool useIMU = true;
 int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
 double pitch, roll, yaw;
 
+bool restartDevice = false;
+
 Button button(0); // Connect your button between GPIO0 and GND
 MPU6050 mpu6050(Wire);
 elapsedMillis orientationCheck;
 const unsigned int orientationCheckInterval = 500;
+
+ESP8266WebServer webserver(80);
+WiFiClient espClient;
+
+uint32_t sleepTime = 50; // Duration to sleep between loops
+uint32_t uptime;         // Counting every second until 4294967295 = 130 year
+uint32_t loop_load_avg;  // Indicative loop load average
 
 /************************* FUNCTION PROTOTYPES ******************************/
 time_t getNtpTime();
@@ -116,6 +131,17 @@ void setDisplayOrientation();
 void setupOTA();
 void setupWifi();
 void configModeCallback(WiFiManager *myWiFiManager);
+
+void http_reset();
+void http_infoPage();
+void http_indexPage();
+void notFound();
+
+inline int32_t TimeDifference(uint32_t prev, uint32_t next);
+int32_t TimePassedSince(uint32_t timestamp);
+bool TimeReached(uint32_t timer);
+void SetNextTimeInterval(uint32_t &timer, const uint32_t step);
+void SleepDelay(uint32_t mseconds);
 
 void setup()
 {
@@ -155,6 +181,12 @@ void setup()
   DebugPrint("*UDP: Running on local port ");
   DebugPrintln(udp.localPort());
 
+  webserver.on("/", http_indexPage);
+  webserver.on("/restart", http_reset);
+  webserver.on("/info", http_infoPage);
+  webserver.onNotFound(notFound);
+  webserver.begin();
+
   matrix.fillScreen(LOW); //Empty the screen
   matrix.setCursor(0, 0); //Move the cursor to the end of the screen
   matrix.print("Ready");
@@ -170,7 +202,26 @@ time_t prevDisplay = 0; // when the digital clock was displayed
 
 void loop()
 {
-  ArduinoOTA.handle();
+  uint32_t my_sleep = millis();
+
+  static uint32_t state_second = 0;                // State second timer
+  if (TimeReached(state_second)) {
+    SetNextTimeInterval(state_second, 1000);
+    uptime++;
+  }
+
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    // Allow MDNS discovery
+    MDNS.update();
+
+    // Poll / handle OTA programming
+    ArduinoOTA.handle();
+
+    // Web Server
+    webserver.handleClient();
+  }
+
   mpu6050.update();
 
   if (orientationCheck > orientationCheckInterval)
@@ -222,7 +273,49 @@ void loop()
     }
   }
 
-  delay(10);
+  // Restart command received
+  if (restartDevice == true)
+  {
+    ESP.restart();
+    delay(100);
+  }
+
+  // Restart if WiFi down for more than 5 minutes
+  if ((WiFi.status() != WL_CONNECTED) && (millis() > 600e3))
+  {
+    ESP.restart();
+    delay(100);
+  }
+
+  // Dynamic sleep
+  uint32_t my_activity = millis() - my_sleep; // Time this loop has taken in milliseconds
+  if (my_activity < sleepTime)
+  {
+    SleepDelay(sleepTime - my_activity); // Provide time for background tasks like wifi
+  }
+  else
+  {
+    if (WiFi.status() != WL_CONNECTED)
+    {
+      SleepDelay(my_activity / 2); // If wifi down then force loop delay to 1/2 of my_activity period
+    }
+  }
+
+  // Calculate loop load_avg
+  if (!my_activity)
+  {
+    my_activity++;
+  } // We cannot divide by 0
+  uint32_t loop_delay = sleepTime;
+  if (!loop_delay)
+  {
+    loop_delay++;
+  }                                              // We cannot divide by 0
+  uint32_t loops_per_second = 1000 / loop_delay; // We need to keep track of this many loops per second
+  uint32_t this_cycle_ratio = 100 * my_activity / loop_delay;
+  loop_load_avg = loop_load_avg - (loop_load_avg / loops_per_second) + (this_cycle_ratio / loops_per_second); // Take away one loop average away and add the new one
+
+  // delay(10);
 }
 
 void digitalClockDisplay()
@@ -452,6 +545,9 @@ void setDisplayOrientation()
 
 void setupOTA()
 {
+  /// OTA Update init
+  ArduinoOTA.setHostname(OTA_HOSTNAME);
+
   ArduinoOTA.onStart([]() {
     DebugPrintln("OTA Programming Start");
     matrix.fillScreen(LOW); //Empty the screen
@@ -530,7 +626,7 @@ void setupWifi()
   matrix.print("WiFi");
   matrix.write();
 
-  if (!wifiManager.autoConnect())
+  if (!wifiManager.autoConnect(OTA_HOSTNAME))
   {
     DebugPrintln("Failed to connect and hit timeout");
     //reset and try again
@@ -549,4 +645,157 @@ void configModeCallback(WiFiManager *myWiFiManager)
   DebugPrintln("Entered config mode");
   DebugPrintln(WiFi.softAPIP());
   DebugPrintln(myWiFiManager->getConfigPortalSSID());
+}
+
+
+void notFound()
+{
+  String message = "File Not Found\n\n";
+  message += "URI: ";
+  message += webserver.uri();
+  message += "\nMethod: ";
+  message += (webserver.method() == HTTP_GET) ? "GET" : "POST";
+  message += "\nArguments: ";
+  message += webserver.args();
+  message += "\n";
+
+  for (uint8_t i = 0; i < webserver.args(); i++)
+  {
+    message += " " + webserver.argName(i) + ": " + webserver.arg(i) + "\n";
+  }
+
+  webserver.send(404, "text/plain", message);
+}
+
+void http_indexPage()
+{
+  String html = FPSTR(htmlHead);
+  html += FPSTR(htmlStyle);
+  html += FPSTR(htmlHeadEnd);
+  html += FPSTR(htmlHeading);
+  html += FPSTR(controls);
+  html += FPSTR(htmlFooter);
+
+  html.replace("%DEVICE_NAME%", DEVICE_NAME);
+
+  webserver.send(200, "text/html", html);
+}
+
+void http_infoPage()
+{
+  // calculate uptime
+  long millisecs = millis() / 1000;
+  int systemUpTimeSc = millisecs % 60;
+  int systemUpTimeMn = (millisecs / 60) % 60;
+  int systemUpTimeHr = (millisecs / (60 * 60)) % 24;
+  int systemUpTimeDy = (millisecs / (60 * 60 * 24));
+
+  // // get SPIFFs info
+  // FSInfo fs_info;
+  // LittleFS.info(fs_info);
+
+  // compose info string
+  String html = FPSTR(htmlHead);
+  html += FPSTR(htmlStyle);
+  html += FPSTR(htmlHeadEnd);
+  html += FPSTR(htmlHeading);
+  html += FPSTR(info);
+  html += FPSTR(htmlFooter);
+
+  // replace placeholders
+  String chipID = String(ESP.getChipId(), HEX);
+  chipID.toUpperCase();
+
+  html.replace("%DEVICE_NAME%", DEVICE_NAME);
+  html.replace("%ESP.getCoreVersion%", ESP.getCoreVersion());
+  html.replace("%ESP.getSdkVersion%", ESP.getSdkVersion());
+  html.replace("%ESP.getResetReason%", ESP.getResetReason());
+  html.replace("%loop_load_avg%", String(loop_load_avg));
+  html.replace("%ESP.getFreeHeap%", String(ESP.getFreeHeap()));
+  html.replace("%ESP.getHeapFragmentation%", String(ESP.getHeapFragmentation()));
+  html.replace("%ESP.getChipId%", "0x" + chipID);
+  html.replace("%ESP.getFlashChipId%", "0x" + String(ESP.getFlashChipId(), 16));
+  html.replace("%ESP.getFlashChipRealSize%", String(ESP.getFlashChipRealSize()));
+  html.replace("%ESP.getFlashChipSize%", String(ESP.getFlashChipSize()));
+  html.replace("%ESP.getSketchSize%", String(ESP.getSketchSize()));
+  html.replace("%ESP.getFreeSketchSpace%", String(ESP.getFreeSketchSpace()));
+  // html.replace("%fs_info.usedBytes%", String(fs_info.usedBytes));
+  // html.replace("%fs_info.totalBytes%", String(fs_info.totalBytes));
+  html.replace("%WiFi.SSID%", WiFi.SSID());
+  html.replace("%WiFi.RSSI%", String(WiFi.RSSI()));
+  html.replace("%WiFi.localIP%", WiFi.localIP().toString());
+  html.replace("%systemUpTimeDy%", String(systemUpTimeDy));
+  html.replace("%systemUpTimeHr%", String(systemUpTimeHr));
+  html.replace("%systemUpTimeMn%", String(systemUpTimeMn));
+  html.replace("%systemUpTimeSc%", String(systemUpTimeSc));
+  html.replace("%uptime%", String(uptime));
+  webserver.send(200, "text/html", html);
+}
+
+void http_reset()
+{
+  webserver.send(200, "text/plain", "Restart!");
+  restartDevice = true;
+}
+
+/*********************************************************************************************\
+ * Sleep aware time scheduler functions borrowed from ESPEasy
+\*********************************************************************************************/
+
+inline int32_t TimeDifference(uint32_t prev, uint32_t next)
+{
+  return ((int32_t)(next - prev));
+}
+
+// Compute the number of milliSeconds passed since timestamp given.
+// Note: value can be negative if the timestamp has not yet been reached.
+int32_t TimePassedSince(uint32_t timestamp)
+{
+  return TimeDifference(timestamp, millis());
+}
+
+// Check if a certain timeout has been reached.
+bool TimeReached(uint32_t timer)
+{
+  const long passed = TimePassedSince(timer);
+  return (passed >= 0);
+}
+
+// Calculate next timer interval
+void SetNextTimeInterval(uint32_t &timer, const uint32_t step)
+{
+  timer += step;
+  const long passed = TimePassedSince(timer);
+  if (passed < 0)
+  {
+    return;
+  } // Event has not yet happened, which is fine.
+  if (static_cast<unsigned long>(passed) > step)
+  {
+    // No need to keep running behind, start again.
+    timer = millis() + step;
+    return;
+  }
+  // Try to get in sync again.
+  timer = millis() + (step - passed);
+}
+
+// Sleep for specified milliseconds unless data in UART buffer
+void SleepDelay(uint32_t mseconds)
+{
+  if (mseconds)
+  {
+    for (uint32_t wait = 0; wait < mseconds; wait++)
+    {
+      delay(1);
+      if (Serial.available())
+      {
+        break;
+      } // We need to service serial buffer ASAP as otherwise we get uart buffer overrun
+    }
+  }
+  else
+  {
+    delay(0);
+  }
 }
