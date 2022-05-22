@@ -236,12 +236,6 @@ void digitalClockDisplay()
 
   if ((second() % 2) != 0)
   {
-    //    //redundant, screen is blank
-    //    matrix.drawPixel(12, 2, LOW);
-    //    matrix.drawPixel(12, 4, LOW);
-    //  }
-    //  else
-    //  {
     matrix.drawPixel(12, 2, HIGH);
     matrix.drawPixel(12, 4, HIGH);
   }
