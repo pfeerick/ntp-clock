@@ -85,6 +85,33 @@ void printDigits(int digits)
   DebugPrint(digits);
 }
 
+void scrollingText(String msg, uint8_t animationSpeed)
+{
+  constexpr int spacer = 1;
+  constexpr int width = 5 + spacer;  // The font width is 5 pixels
+
+  for (unsigned int i = 0;
+       i < width * msg.length() + matrix.width() - 1 - spacer; i++) {
+    matrix.fillScreen(LOW);
+
+    unsigned int letter = i / width;
+    int x = (matrix.width() - 1) - i % width;
+    int y = (matrix.height() - 8) / 2;  // center the text vertically
+
+    while (x + width - spacer >= 0 && letter >= 0) {
+      if (letter < msg.length()) {
+        matrix.drawChar(x, y, msg[letter], HIGH, LOW, 1);
+      }
+
+      letter--;
+      x -= width;
+    }
+
+    matrix.write();  // Send bitmap to display
+    delay(animationSpeed);
+  }
+}
+
 void digitalClockDisplay()
 {
   matrix.fillScreen(LOW);  // Empty the screen

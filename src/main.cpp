@@ -128,34 +128,7 @@ void loop()
   // message / action if button pressed
   if (sensor::button.pressed()) {
     DebugPrintln("Button Pressed!");
-
-    const String tape = "Let go of me!";
-    constexpr int wait = 30;  // In milliseconds - was 20
-
-    constexpr int spacer = 1;
-    constexpr int width = 5 + spacer;  // The font width is 5 pixels
-
-    for (unsigned int i = 0;
-         i < width * tape.length() + display::matrix.width() - 1 - spacer;
-         i++) {
-      display::matrix.fillScreen(LOW);
-
-      unsigned int letter = i / width;
-      int x = (display::matrix.width() - 1) - i % width;
-      int y = (display::matrix.height() - 8) / 2;  // center the text vertically
-
-      while (x + width - spacer >= 0 && letter >= 0) {
-        if (letter < tape.length()) {
-          display::matrix.drawChar(x, y, tape[letter], HIGH, LOW, 1);
-        }
-
-        letter--;
-        x -= width;
-      }
-
-      display::matrix.write();  // Send bitmap to display
-      delay(wait);
-    }
+    display::scrollingText("Let go of me!", 30);
   }
 
   // Restart command received or WiFi down for more than specified time
