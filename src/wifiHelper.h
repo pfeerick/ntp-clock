@@ -96,7 +96,6 @@ void setupOTA()
 
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
     DebugPrintf("Progress: %u%%\r", (progress / (total / 100)));
-
     display::printProgress(progress, total);
   });
 
