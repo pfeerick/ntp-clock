@@ -72,7 +72,7 @@
 elapsedMillis orientationCheck;
 constexpr uint16_t orientationCheckInterval = 500;
 constexpr uint8_t delayAfterRestart = 100;
-
+constexpr uint16_t wifiDisconnectDelayBeforeRestart = 60 * 5;
 time_t prevDisplay = 0;  // time when the digital clock was displayed last
 
 void setup()
@@ -158,9 +158,10 @@ void loop()
     }
   }
 
-  // Restart command received or WiFi down for more than 5 minutes
+  // Restart command received or WiFi down for more than specified time
   if (restartDevice == true ||
-      ((WiFi.status() != WL_CONNECTED) && (wifi::downtime >= 60 * 5))) {
+      ((WiFi.status() != WL_CONNECTED) &&
+       (wifi::downtime >= wifiDisconnectDelayBeforeRestart))) {
     ESP.restart();
     delay(delayAfterRestart);
   }
