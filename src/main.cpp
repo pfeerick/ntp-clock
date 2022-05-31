@@ -1,5 +1,5 @@
 /**
- * This file is part of the NTP LED Matrix Clock.
+ * This file is part of the NTP LED Matrix Clock Project
  * Copyright (c) Peter Feerick
  *
  * This program is free software: you can redistribute it and/or modify
@@ -73,6 +73,8 @@ elapsedMillis orientationCheck;
 constexpr uint16_t orientationCheckInterval = 500;
 constexpr uint8_t delayAfterRestart = 100;
 
+time_t prevDisplay = 0;  // time when the digital clock was displayed last
+
 void setup()
 {
   DebugBegin(115200);
@@ -96,31 +98,34 @@ void setup()
   display::printMsg("Ready");
 }
 
-time_t prevDisplay = 0;  // when the digital clock was displayed
-
 void loop()
 {
   uint32_t loopStart = millis();
   sleep::updateUptime();
+
+  wifi::WifiCheckState();
 
   if (WiFi.status() == WL_CONNECTED) {
     wifi::otaLoopTask();
     webserver::loopTask();
   }
 
+  // check if gyro orientation has changed and rotate display accordingly
   sensor::gyroUpdate();
   if (orientationCheck > orientationCheckInterval) {
     orientationCheck = 0;  // reset counter
     display::setDisplayOrientation(sensor::gyroGetValue(sensor::Y_AXIS, false));
   }
 
+  // update display if time set and has changed
   if (timeStatus() != timeNotSet) {
-    if (now() != prevDisplay) {  // update the display only if time has changed
+    if (now() != prevDisplay) {
       prevDisplay = now();
       display::digitalClockDisplay();
     }
   }
 
+  // message / action if button pressed
   if (sensor::button.pressed()) {
     DebugPrintln("Button Pressed!");
 
@@ -153,14 +158,9 @@ void loop()
     }
   }
 
-  // Restart command received
-  if (restartDevice == true) {
-    ESP.restart();
-    delay(delayAfterRestart);
-  }
-
-  // Restart if WiFi down for more than 5 minutes
-  if ((WiFi.status() != WL_CONNECTED) && (millis() > 600e3)) {
+  // Restart command received or WiFi down for more than 5 minutes
+  if (restartDevice == true ||
+      ((WiFi.status() != WL_CONNECTED) && (wifi::downtime >= 60 * 5))) {
     ESP.restart();
     delay(delayAfterRestart);
   }

@@ -1,11 +1,10 @@
 #pragma once
 
-#include <ESP8266WebServer.h>  // Local WebServer used to serve the configuration portal
 #include <globals.h>           // Global libraries and variables
+#include <ESP8266WebServer.h>  // Local WebServer used to serve the configuration portal
+#include <webserverHelper.h>  // Web server helper functions
 
 #include "webpages.h"  // Web page source code
-
-#include <webserverHelper.h>
 
 namespace webserver
 {

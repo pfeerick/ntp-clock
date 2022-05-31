@@ -1,13 +1,13 @@
 #pragma once
 
-#include <globals.h>        // Global libraries and variables
-#include <displayHelper.h>  // Display helper functions
 #include <ArduinoOTA.h>     // OTA programming support
-#include <DNSServer.h>      // DNS Server for redirecting requests to configuration portal
+#include <DNSServer.h>      // DNS Server for redirect to configuration portal
 #include <ESP8266WiFi.h>    // ESP8266 Core WiFi Library
 #include <ESP8266mDNS.h>    // Multicast DNS (for OTA)
 #include <WiFiManager.h>    // WiFi Configuration Portal
 #include <WiFiUdp.h>        // UDP support (for NTP)
+#include <displayHelper.h>  // Display helper functions
+#include <globals.h>        // Global libraries and variables
 
 namespace wifi
 {
@@ -17,9 +17,13 @@ constexpr const char ntpServerName[] = "au.pool.ntp.org";
 WiFiUDP udp;  // A UDP instance to let us send and receive packets over UDP
 constexpr uint16_t localPort = 2390;  // local port to listen for UDP packets
 
-constexpr uint8_t NTP_PACKET_SIZE = 48;  // NTP time is in the first 48 bytes of message
+constexpr uint8_t NTP_PACKET_SIZE =
+    48;  // NTP time is in the first 48 bytes of message
 byte packetBuffer[NTP_PACKET_SIZE];  // buffer to hold incoming & outgoing
                                      // packets
+
+uint32_t last_event = 0;  // Last wiFi connection event
+uint32_t downtime = 0;    // WiFi down duration
 
 // send an NTP request to the time server at the given address
 void sendNTPpacket(IPAddress &address)
@@ -116,6 +120,23 @@ void setupOTA()
   ArduinoOTA.setHostname(HOSTNAME);
   ArduinoOTA.begin();
   DebugPrintln("*OTA: Ready");
+}
+
+void WifiSetState(uint8_t state)
+{
+    if (state) {
+      downtime += uptime - last_event;
+    } else {
+      last_event = uptime;
+    }
+}
+
+void WifiCheckState(void) {
+  if ((WL_CONNECTED == WiFi.status()) && (uint32_t)WiFi.localIP() != 0) {
+    WifiSetState(1);
+  } else {
+    WifiSetState(0);
+  }
 }
 
 void otaLoopTask()
