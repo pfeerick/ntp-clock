@@ -1,12 +1,14 @@
-#include <Arduino.h>
+#pragma once
 
-const char htmlHead[] PROGMEM = R"=====(
+#include <globals.h>  // Global libraries and variables
+
+constexpr char htmlHead[] PROGMEM = R"=====(
 <!DOCTYPE html><html lang="en">
 <meta name="viewport"content="width=device-width,initial-scale=1"/><head>
 <title>%DEVICE_NAME%</title>
 )=====";
 
-const char htmlStyle[] PROGMEM = R"=====(
+constexpr char htmlStyle[] PROGMEM = R"=====(
 <style>
 .c{text-align:center;}div,input{padding:5px;font-size:1em;}
 input{width:95%;}body{text-align:center;font-family:verdana;}
@@ -16,18 +18,18 @@ button{border:0;border-radius:0.3rem;background-color:#1fa3ec;color:#fff;line-he
 </style>
 )=====";
 
-const char htmlHeadEnd[] PROGMEM = R"=====(
+constexpr char htmlHeadEnd[] PROGMEM = R"=====(
 </head><body><div style="text-align:left;display:inline-block;min-width:260px;">
 )=====";
 
-const char htmlHeading[] PROGMEM = R"=====(<h1>%DEVICE_NAME%</h1>)=====";
-const char htmlFooter[] PROGMEM = R"=====(</div></body></html>)=====";
+constexpr char htmlHeading[] PROGMEM = R"=====(<h1>%DEVICE_NAME%</h1>)=====";
+constexpr char htmlFooter[] PROGMEM = R"=====(</div></body></html>)=====";
 
-const char controls[] PROGMEM = R"=====(
+constexpr char controls[] PROGMEM = R"=====(
 <form action="/info" method="get"><button>Info</button></form><br/>
 )=====";
 
-const char info[] PROGMEM = R"=====(
+constexpr char info[] PROGMEM = R"=====(
 <b>ESP8266 Core Version:</b> %ESP.getCoreVersion%</br>
 <b>ESP8266 SDK Version:</b> %ESP.getSdkVersion%</br>
 </br>
