@@ -30,28 +30,28 @@ constexpr char controls[] PROGMEM = R"=====(
 )=====";
 
 constexpr char info[] PROGMEM = R"=====(
-<b>ESP8266 Core Version:</b> %ESP.getCoreVersion%</br>
-<b>ESP8266 SDK Version:</b> %ESP.getSdkVersion%</br>
-</br>
-<b>Reset Reason:</b> %ESP.getResetReason%</br>
-</br>
-<b>Load Average:</b> %loop_load_avg%</br>
-<b>Free Heap:</b> %ESP.getFreeHeap% bytes (%ESP.getHeapFragmentation%% fragmentation)</br>
-</br>
-<b>ESP8266 Chip ID:</b> %ESP.getChipId%</br>
-<b>ESP8266 Flash Chip ID:</b> %ESP.getFlashChipId%</br>
-</br>
-<b>Flash Chip Size:</b> %ESP.getFlashChipRealSize% bytes (%ESP.getFlashChipSize% bytes seen by SDK)</br>
-<b>Sketch Size:</b> %ESP.getSketchSize% bytes used of %ESP.getFreeSketchSpace% bytes available</br>
-</br>
-<b>WiFi SSID:</b> %WiFi.SSID%</br>
-<b>WiFi RSSI:</b> %WiFi.RSSI%dBm</br>
-<b>WiFi IP:</b> %WiFi.localIP%</br>
-</br>
-<b>System Uptime:</b> %systemUpTimeDy% day(s), %systemUpTimeHr% hour(s), %systemUpTimeMn% minute(s), %systemUpTimeSc% second(s)</br>
-<b>Uptime (seconds):</b> %uptime%</br>
-</br></br>
+<b>ESP8266 Core Version:</b> %ESP.getCoreVersion%<br />
+<b>ESP8266 SDK Version:</b> %ESP.getSdkVersion%<br />
+<br />
+<b>Reset Reason:</b> %ESP.getResetReason%<br />
+<br />
+<b>Load Average:</b> %loop_load_avg%<br />
+<b>Free Heap:</b> %ESP.getFreeHeap% bytes (%ESP.getHeapFragmentation%% fragmentation)<br />
+<br />
+<b>ESP8266 Chip ID:</b> %ESP.getChipId%<br />
+<b>ESP8266 Flash Chip ID:</b> %ESP.getFlashChipId%<br />
+<br />
+<b>Flash Chip Size:</b> %ESP.getFlashChipRealSize% bytes (%ESP.getFlashChipSize% bytes seen by SDK)<br />
+<b>Sketch Size:</b> %ESP.getSketchSize% bytes used of %ESP.getFreeSketchSpace% bytes available<br />
+<br />
+<b>WiFi SSID:</b> %WiFi.SSID%<br />
+<b>WiFi RSSI:</b> %WiFi.RSSI%dBm<br />
+<b>WiFi IP:</b> %WiFi.localIP%<br />
+<br />
+<b>System Uptime:</b> %systemUpTimeDy% day(s), %systemUpTimeHr% hour(s), %systemUpTimeMn% minute(s), %systemUpTimeSc% second(s)<br />
+<b>Uptime (seconds):</b> %uptime%<br />
+<br /><br />
 <a href="/restart"><button>Restart</button></a>
-</br></br>
+<br /><br />
 <a href="/"><button>Back</button></a>
 )=====";
