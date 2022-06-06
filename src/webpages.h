@@ -25,6 +25,44 @@ constexpr char htmlHeadEnd[] PROGMEM = R"=====(
 constexpr char htmlHeading[] PROGMEM = R"=====(<h1>%DEVICE_NAME%</h1>)=====";
 constexpr char htmlFooter[] PROGMEM = R"=====(</div></body></html>)=====";
 
+constexpr char htmlJS[] PROGMEM = R"=====(
+    <script>
+        function updateTimedateData() {
+            console.log("updateTimedateData()");
+            let timedate = new XMLHttpRequest();
+
+            timedate.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    console.log("updateTimedateData(): got Data:", this.responseText);
+                    let data = JSON.parse(this.responseText);
+
+                    let min = String(data.minute).padStart(2, '0');
+                    let sec = String(data.second).padStart(2, '0');
+                    let am_pm = data.isAM ? "AM" : "PM";
+                    let time = `${data.hour}:${min}:${sec} ${am_pm}`;
+
+                    let month = String(data.month).padStart(2, '0');
+                    let date = `${data.day}/${month}/${data.year}`;
+
+                    document.getElementById("time").innerHTML = time;
+                    document.getElementById("date").innerHTML = date;
+                }
+            };
+            timedate.open("GET", "/getTimedate", true);
+            timedate.send();
+        }
+
+        updateTimedateData();
+
+        window.setInterval(updateTimedateData, 10000); //update the clock every 10 seconds
+    </script>
+)=====";
+
+constexpr char htmlTime[] PROGMEM = R"=====(
+<div id="time"></div>
+<div id="date"></div>
+)=====";
+
 constexpr char controls[] PROGMEM = R"=====(
 <form action="/info" method="get"><button>Info</button></form><br/>
 )=====";

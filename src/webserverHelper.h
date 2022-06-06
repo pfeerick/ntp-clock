@@ -33,8 +33,10 @@ void http_indexPage()
 {
   String html = FPSTR(htmlHead);
   html += FPSTR(htmlStyle);
+  html += FPSTR(htmlJS);
   html += FPSTR(htmlHeadEnd);
   html += FPSTR(htmlHeading);
+  html += FPSTR(htmlTime);
   html += FPSTR(controls);
   html += FPSTR(htmlFooter);
 
@@ -102,11 +104,24 @@ void http_reset()
   restartDevice = true;
 }
 
+void getTimedateData()
+{
+  webserver.send(200, "application/json",
+              "{\"hour\":" + String(hour()) +
+                  ", \"minute\":" + String(minute()) +
+                  ", \"second\":" + String(second()) +
+                  ", \"isAM\":" + String(isAM()) +
+                  ", \"day\":" + String(day()) +
+                  ", \"month\":" + String(month()) +
+                  ", \"year\":" + String(year()) + "}");
+}
+
 void setupHTTP()
 {
   webserver.on("/", http_indexPage);
   webserver.on("/restart", http_reset);
   webserver.on("/info", http_infoPage);
+  webserver.on("/getTimedate", getTimedateData);
   webserver.onNotFound(notFound);
   webserver.begin();
 }
