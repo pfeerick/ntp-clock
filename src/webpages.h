@@ -54,7 +54,7 @@ constexpr char htmlJS[] PROGMEM = R"=====(
 
         updateTimedateData();
 
-        window.setInterval(updateTimedateData, 10000); //update the clock every 10 seconds
+        window.setInterval(updateTimedateData, 1000); //update the clock every second
     </script>
 )=====";
 
