@@ -61,6 +61,7 @@ void http_infoPage()
   // compose info string
   String html = FPSTR(htmlHead);
   html += FPSTR(htmlStyle);
+  html += FPSTR(htmlHeadRefresh);
   html += FPSTR(htmlHeadEnd);
   html += FPSTR(htmlHeading);
   html += FPSTR(info);
@@ -70,6 +71,7 @@ void http_infoPage()
   String chipID = String(ESP.getChipId(), HEX);
   chipID.toUpperCase();
 
+  html.replace("%REFRESH_CONTENT%", "60");
   html.replace("%DEVICE_NAME%", DEVICE_NAME);
   html.replace("%ESP.getCoreVersion%", ESP.getCoreVersion());
   html.replace("%ESP.getSdkVersion%", ESP.getSdkVersion());

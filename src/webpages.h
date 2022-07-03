@@ -18,6 +18,10 @@ button{border:0;border-radius:0.3rem;background-color:#1fa3ec;color:#fff;line-he
 </style>
 )=====";
 
+const char htmlHeadRefresh[] PROGMEM = R"=====(
+<meta http-equiv="refresh" content="%REFRESH_CONTENT%">
+)=====";
+
 constexpr char htmlHeadEnd[] PROGMEM = R"=====(
 </head><body><div style="text-align:left;display:inline-block;min-width:260px;">
 )=====";
