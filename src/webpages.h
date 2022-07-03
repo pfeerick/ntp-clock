@@ -10,11 +10,11 @@ constexpr char htmlHead[] PROGMEM = R"=====(
 
 constexpr char htmlStyle[] PROGMEM = R"=====(
 <style>
-.c{text-align:center;}div,input{padding:5px;font-size:1em;}
-input{width:95%;}body{text-align:center;font-family:verdana;}
-button{border:0;border-radius:0.3rem;background-color:#1fa3ec;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;} 
-.q{float:right;width:64px;text-align:right;} 
-.l{background:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAALVBMVEX///8EBwfBwsLw8PAzNjaCg4NTVVUjJiZDRUUUFxdiZGSho6OSk5Pg4eFydHTCjaf3AAAAZElEQVQ4je2NSw7AIAhEBamKn97/uMXEGBvozkWb9C2Zx4xzWykBhFAeYp9gkLyZE0zIMno9n4g19hmdY39scwqVkOXaxph0ZCXQcqxSpgQpONa59wkRDOL93eAXvimwlbPbwwVAegLS1HGfZAAAAABJRU5ErkJggg==")no-repeat left center;background-size:1em;}
+.c{text-align:center;}
+div{padding:5px;font-size:1em;}
+body{text-align:center;font-family:verdana;}
+button{border:0;border-radius:0.3rem;background-color:#1fa3ec;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;}
+.large{font-size:2em;}
 </style>
 )=====";
 
@@ -22,7 +22,7 @@ constexpr char htmlHeadEnd[] PROGMEM = R"=====(
 </head><body><div style="text-align:left;display:inline-block;min-width:260px;">
 )=====";
 
-constexpr char htmlHeading[] PROGMEM = R"=====(<h1>%DEVICE_NAME%</h1>)=====";
+constexpr char htmlHeading[] PROGMEM = R"=====(<h1 class="c">%DEVICE_NAME%</h1>)=====";
 constexpr char htmlFooter[] PROGMEM = R"=====(</div></body></html>)=====";
 
 constexpr char htmlJS[] PROGMEM = R"=====(
@@ -59,8 +59,9 @@ constexpr char htmlJS[] PROGMEM = R"=====(
 )=====";
 
 constexpr char htmlTime[] PROGMEM = R"=====(
-<div id="time"></div>
-<div id="date"></div>
+<div id="time" class="c large"></div>
+<div id="date" class="c large"></div>
+<br />
 )=====";
 
 constexpr char controls[] PROGMEM = R"=====(
