@@ -188,5 +188,7 @@ void setupWifi()
     ESP.reset();
     delay(1000);
   }
+
+  WiFi.hostname(OTA_HOSTNAME);
 }
 }  // namespace wifi
