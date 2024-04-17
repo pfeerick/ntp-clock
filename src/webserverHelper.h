@@ -101,6 +101,23 @@ void http_infoPage()
   webserver.send(200, "text/html", html);
 }
 
+/**
+ * @brief Handle "/setTimedate" URL request
+ */
+void http_setTimedate()
+{
+  // construct config page
+  String html = FPSTR(htmlHead);
+  html += FPSTR(htmlStyle);
+  html += FPSTR(htmlHeadEnd);
+  html += FPSTR(htmlHeading);
+  html += FPSTR(htmlSetTime);
+  html += FPSTR(htmlFooter);
+
+  html.replace("%DEVICE_NAME%", DEVICE_NAME);
+  webserver.send(200, "text/html", html);
+}
+
 void http_reset()
 {
   webserver.send(200, "text/plain", "Restart!");
@@ -116,6 +133,8 @@ void http_resetWifi()
                  "Clearing WiFi credentials. You will need to reconfigure AP!");
   wifi::eraseWifi();
 }
+
+void http_getTimedate()
 {
   webserver.send(200, "application/json",
               "{\"hour\":" + String(hour()) +
@@ -132,6 +151,8 @@ void setupHTTP()
   webserver.on("/", http_indexPage);
   webserver.on("/restart", http_reset);
   webserver.on("/info", http_infoPage);
+  webserver.on("/getTimedate", http_getTimedate);
+  webserver.on("/setTimedate", http_setTimedate);
   webserver.on("/resetWifi", http_resetWifi);
   webserver.onNotFound(notFound);
   webserver.begin();

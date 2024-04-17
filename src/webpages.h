@@ -70,7 +70,9 @@ constexpr char htmlTime[] PROGMEM = R"=====(
 )=====";
 
 constexpr char controls[] PROGMEM = R"=====(
-<form action="/info" method="get"><button>Info</button></form><br/>
+<a href="/info"><button>Info</button></a><br/>
+<br/>
+<a href="/setTimedate"><button>Set Time</button></a><br/>
 )=====";
 
 constexpr char info[] PROGMEM = R"=====(
@@ -87,6 +89,7 @@ constexpr char info[] PROGMEM = R"=====(
 <br />
 <b>Flash Chip Size:</b> %ESP.getFlashChipRealSize% bytes (%ESP.getFlashChipSize% bytes seen by SDK)<br />
 <b>Sketch Size:</b> %ESP.getSketchSize% bytes used of %ESP.getFreeSketchSpace% bytes available<br />
+<!-- <b>File System Usage:</b> %fs_info.usedBytes% bytes used of %fs_info.totalBytes% bytes available</br> -->
 <br />
 <b>WiFi SSID:</b> %WiFi.SSID%<br />
 <b>WiFi RSSI:</b> %WiFi.RSSI%dBm<br />
@@ -100,4 +103,23 @@ constexpr char info[] PROGMEM = R"=====(
 <a href="/resetWifi"><button>Erase WiFi Credentials</button></a>
 <br /><br />
 <a href="/"><button>Back</button></a>
+)=====";
+
+constexpr char htmlSetTime[] PROGMEM = R"=====(
+<!-- addEventListener("click", (event) => {}); -->
+
+<!-- onclick = (event) => {}; -->
+<form action="/configSave">
+<label for="set-time">Choose the time:</label>
+<input
+  type="datetime-local"
+  id="set-time"
+  name="set-time"
+  value="2024-01-01T00:00"
+ />
+
+ <input type="button" value="Set!" />
+ </form>
+ <br />
+ <a href="/"><button>Back</button></a>
 )=====";
