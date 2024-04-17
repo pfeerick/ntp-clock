@@ -22,8 +22,11 @@ constexpr uint8_t NTP_PACKET_SIZE =
 byte packetBuffer[NTP_PACKET_SIZE];  // buffer to hold incoming & outgoing
                                      // packets
 
-uint32_t last_event = 0;  // Last wiFi connection event
-uint32_t downtime = 0;    // WiFi down duration
+uint32_t last_event = 0;   // Last wiFi connection event
+uint32_t downtime = 0;     // WiFi down duration
+const int haltDelay = 200; // delay in ms before webserver/wifi halted
+
+WiFiManager wifiManager;
 
 // send an NTP request to the time server at the given address
 void sendNTPpacket(IPAddress &address)
@@ -171,8 +174,6 @@ void setupUDP()
 
 void setupWifi()
 {
-  WiFiManager wifiManager;
-
   wifiManager.setAPCallback(configModeCallback);
   wifiManager.setConfigPortalTimeout(300);  // 5 minute timout
 
@@ -190,5 +191,17 @@ void setupWifi()
   }
 
   WiFi.hostname(OTA_HOSTNAME);
+}
+
+void eraseWifi()
+{
+  display::printMsg("CLR WiFi");
+  delay(haltDelay);
+  wifiManager.resetSettings();
+  ESP.eraseConfig();
+  WiFi.disconnect();
+  delay(haltDelay);
+  ESP.restart();
+  delay(haltDelay);
 }
 }  // namespace wifi

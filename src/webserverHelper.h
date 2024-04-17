@@ -1,8 +1,9 @@
 #pragma once
 
-#include <globals.h>           // Global libraries and variables
-#include <ESP8266WebServer.h>  // Local WebServer used to serve the configuration portal
+#include <globals.h>          // Global libraries and variables
+#include <ESP8266WebServer.h> // Local WebServer used to serve the configuration portal
 #include <webserverHelper.h>  // Web server helper functions
+#include <wifiHelper.h>       // WiFi helper functions
 
 #include "webpages.h"  // Web page source code
 
@@ -106,7 +107,15 @@ void http_reset()
   restartDevice = true;
 }
 
-void getTimedateData()
+/**
+ * @brief Handle "/resetWifi" URL  request
+ */
+void http_resetWifi()
+{
+  webserver.send(200, "text/plain",
+                 "Clearing WiFi credentials. You will need to reconfigure AP!");
+  wifi::eraseWifi();
+}
 {
   webserver.send(200, "application/json",
               "{\"hour\":" + String(hour()) +
@@ -123,7 +132,7 @@ void setupHTTP()
   webserver.on("/", http_indexPage);
   webserver.on("/restart", http_reset);
   webserver.on("/info", http_infoPage);
-  webserver.on("/getTimedate", getTimedateData);
+  webserver.on("/resetWifi", http_resetWifi);
   webserver.onNotFound(notFound);
   webserver.begin();
 }

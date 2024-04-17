@@ -96,5 +96,7 @@ constexpr char info[] PROGMEM = R"=====(
 <br /><br />
 <a href="/restart"><button>Restart</button></a>
 <br /><br />
+<a href="/resetWifi"><button>Erase WiFi Credentials</button></a>
+<br /><br />
 <a href="/"><button>Back</button></a>
 )=====";
