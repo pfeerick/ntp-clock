@@ -102,21 +102,65 @@ void http_infoPage()
 }
 
 /**
- * @brief Handle "/setTimedate" URL request
+ * @brief Handle "/config" URL request
  */
-void http_setTimedate()
+void http_configPage()
 {
   // construct config page
   String html = FPSTR(htmlHead);
   html += FPSTR(htmlStyle);
   html += FPSTR(htmlHeadEnd);
   html += FPSTR(htmlHeading);
-  html += FPSTR(htmlSetTime);
+  html += FPSTR(htmlConfig);
   html += FPSTR(htmlFooter);
 
   html.replace("%DEVICE_NAME%", DEVICE_NAME);
   webserver.send(200, "text/html", html);
 }
+/**
+ * @brief Handle "/configSave" URL request
+ */
+void http_configPageSave()
+{
+  String statusMsg;
+  // set-time: 2024-01-01T00:00
+  if (webserver.hasArg("set-time")) {
+    const String timeStr = webserver.arg("set-time");
+
+    int splitT = timeStr.indexOf('T');
+    String datePart = timeStr.substring(0, splitT);
+    String timePart = timeStr.substring(splitT + 1);
+
+    int splitDate1 = datePart.indexOf('-');
+    int splitDate2 = datePart.lastIndexOf('-');
+    int year = datePart.substring(0, splitDate1).toInt();
+    int month = datePart.substring(splitDate1 + 1, splitDate2).toInt();
+    int day = datePart.substring(splitDate2 + 1).toInt();
+
+    int splitTime = timePart.indexOf(':');
+    int hour = timePart.substring(0, splitTime).toInt();
+    int minute = timePart.substring(splitTime + 1).toInt();
+
+    setTime(hour, minute, 0, day, month, year);
+
+    statusMsg += "Time set!";
+  }
+
+  String html = FPSTR(htmlHead);
+  html += FPSTR(htmlStyle);
+  html += FPSTR(htmlHeadRefresh);
+  html += FPSTR(htmlHeadEnd);
+  html += FPSTR(htmlHeading);
+  html += statusMsg + "<br />";
+  html += F("Returning to main page...");
+  html += FPSTR(htmlFooter);
+
+  html.replace("%DEVICE_NAME%", DEVICE_NAME);
+  html.replace("%REFRESH_CONTENT%", "3;/");
+
+  webserver.send(200, "text/html", html);
+}
+
 /**
  * @brief Handle "/restart" URL request
  */
@@ -154,7 +198,8 @@ void setupHTTP()
   webserver.on("/restart", http_restart);
   webserver.on("/info", http_infoPage);
   webserver.on("/getTimedate", http_getTimedate);
-  webserver.on("/setTimedate", http_setTimedate);
+  webserver.on("/config", http_configPage);
+  webserver.on("/configSave", http_configPageSave);
   webserver.on("/resetWifi", http_resetWifi);
   webserver.onNotFound(notFound);
   webserver.begin();

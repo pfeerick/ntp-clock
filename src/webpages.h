@@ -10,10 +10,10 @@ constexpr char htmlHead[] PROGMEM = R"=====(
 
 constexpr char htmlStyle[] PROGMEM = R"=====(
 <style>
-.c{text-align:center;}
-div{padding:5px;font-size:1em;}
+.c{text-align:center;}div,input{padding:5px;font-size:1em;}
+input{width:95%;}
 body{text-align:center;font-family:verdana;}
-button{border:0;border-radius:0.3rem;background-color:#1fa3ec;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;}
+button{border:0;border-radius:0.3rem;background-color:#1fa3ec;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;} 
 .large{font-size:2em;}
 </style>
 )=====";
@@ -72,7 +72,7 @@ constexpr char htmlTime[] PROGMEM = R"=====(
 constexpr char controls[] PROGMEM = R"=====(
 <a href="/info"><button>Info</button></a><br/>
 <br/>
-<a href="/setTimedate"><button>Set Time</button></a><br/>
+<a href="/config"><button>Configure</button></a><br/>
 )=====";
 
 constexpr char info[] PROGMEM = R"=====(
@@ -105,10 +105,7 @@ constexpr char info[] PROGMEM = R"=====(
 <a href="/"><button>Back</button></a>
 )=====";
 
-constexpr char htmlSetTime[] PROGMEM = R"=====(
-<!-- addEventListener("click", (event) => {}); -->
-
-<!-- onclick = (event) => {}; -->
+constexpr char htmlConfig[] PROGMEM = R"=====(
 <form action="/configSave">
 <label for="set-time">Choose the time:</label>
 <input
@@ -117,8 +114,8 @@ constexpr char htmlSetTime[] PROGMEM = R"=====(
   name="set-time"
   value="2024-01-01T00:00"
  />
-
- <input type="button" value="Set!" />
+ <br /><br />
+ <input type="submit" value="Save" />
  </form>
  <br />
  <a href="/"><button>Back</button></a>
