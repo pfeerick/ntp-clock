@@ -117,8 +117,10 @@ void http_setTimedate()
   html.replace("%DEVICE_NAME%", DEVICE_NAME);
   webserver.send(200, "text/html", html);
 }
-
-void http_reset()
+/**
+ * @brief Handle "/restart" URL request
+ */
+void http_restart()
 {
   webserver.send(200, "text/plain", "Restart!");
   restartDevice = true;
@@ -149,7 +151,7 @@ void http_getTimedate()
 void setupHTTP()
 {
   webserver.on("/", http_indexPage);
-  webserver.on("/restart", http_reset);
+  webserver.on("/restart", http_restart);
   webserver.on("/info", http_infoPage);
   webserver.on("/getTimedate", http_getTimedate);
   webserver.on("/setTimedate", http_setTimedate);
