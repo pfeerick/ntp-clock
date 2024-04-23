@@ -124,28 +124,21 @@ void http_configPageSave()
 {
   String statusMsg;
   // set-time: 2024-01-01T00:00
-  if (webserver.hasArg("set-time")) {
-    const String timeStr = webserver.arg("set-time");
+  if (webserver.hasArg("set-time"))
+  {
+    const String dateTimeStr = webserver.arg("set-time");
+    int year, month, day, hour, minute;
 
-    int splitT = timeStr.indexOf('T');
-    String datePart = timeStr.substring(0, splitT);
-    String timePart = timeStr.substring(splitT + 1);
-
-    int splitDate1 = datePart.indexOf('-');
-    int splitDate2 = datePart.lastIndexOf('-');
-    int year = datePart.substring(0, splitDate1).toInt();
-    int month = datePart.substring(splitDate1 + 1, splitDate2).toInt();
-    int day = datePart.substring(splitDate2 + 1).toInt();
-
-    int splitTime = timePart.indexOf(':');
-    int hour = timePart.substring(0, splitTime).toInt();
-    int minute = timePart.substring(splitTime + 1).toInt();
-
-    setTime(hour, minute, 0, day, month, year);
-
-    statusMsg += "Time set!";
+    if (sscanf(dateTimeStr.c_str(), "%d-%d-%dT%d:%d", &year, &month, &day, &hour, &minute) == 5)
+    {
+      setTime(hour, minute, 0, day, month, year);
+      statusMsg += "Time set!";
+    }
+    else
+    {
+      statusMsg += "Error setting time!";
+    }
   }
-
   String html = FPSTR(htmlHead);
   html += FPSTR(htmlStyle);
   html += FPSTR(htmlHeadRefresh);
