@@ -108,12 +108,13 @@ constexpr char info[] PROGMEM = R"=====(
 
 constexpr char htmlConfig[] PROGMEM = R"=====(
 <form action="/configSave">
-<label for="set-time">Choose the time:</label>
+<label for="set-time">Set the date and time:</label>
 <input
   type="datetime-local"
   id="set-time"
   name="set-time"
-  value="2024-01-01T00:00"
+  value="2024-01-01T00:00:00"
+  step="1"
  />
  <br /><br />
  <input type="submit" value="Save" />

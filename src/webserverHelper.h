@@ -126,11 +126,11 @@ void http_configPageSave()
   // set-time: 2024-01-01T00:00
   if (webserver.hasArg("set-time")) {
     const String dateTimeStr = webserver.arg("set-time");
-    int year, month, day, hour, minute;
+    int year, month, day, hour, minute, second;
 
-    if (sscanf(dateTimeStr.c_str(), "%d-%d-%dT%d:%d", &year, &month, &day,
-               &hour, &minute) == 5) {
-      setTime(hour, minute, 0, day, month, year);
+    if (sscanf(dateTimeStr.c_str(), "%d-%d-%dT%d:%d:%d", &year, &month, &day,
+               &hour, &minute, &second) == 6) {
+      setTime(hour, minute, second, day, month, year);
       statusMsg += "Time set!";
     } else {
       statusMsg += "Error setting time!";
