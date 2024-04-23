@@ -1,9 +1,9 @@
 #pragma once
 
-#include <globals.h>        // Global libraries and variables
 #include <Button.h>         // Simple button library
 #include <MPU6050_tockn.h>  // MPU6050 Gyro + Accelometer
 #include <Wire.h>           // I2C device support
+#include <globals.h>        // Global libraries and variables
 
 namespace sensor
 {

@@ -22,9 +22,9 @@ constexpr uint8_t NTP_PACKET_SIZE =
 byte packetBuffer[NTP_PACKET_SIZE];  // buffer to hold incoming & outgoing
                                      // packets
 
-uint32_t last_event = 0;   // Last wiFi connection event
-uint32_t downtime = 0;     // WiFi down duration
-const int haltDelay = 200; // delay in ms before webserver/wifi halted
+uint32_t last_event = 0;    // Last wiFi connection event
+uint32_t downtime = 0;      // WiFi down duration
+const int haltDelay = 200;  // delay in ms before webserver/wifi halted
 
 WiFiManager wifiManager;
 
@@ -126,14 +126,15 @@ void setupOTA()
 
 void WifiSetState(uint8_t state)
 {
-    if (state) {
-      downtime += uptime - last_event;
-    } else {
-      last_event = uptime;
-    }
+  if (state) {
+    downtime += uptime - last_event;
+  } else {
+    last_event = uptime;
+  }
 }
 
-void WifiCheckState(void) {
+void WifiCheckState(void)
+{
   if ((WL_CONNECTED == WiFi.status()) && (uint32_t)WiFi.localIP() != 0) {
     WifiSetState(1);
   } else {

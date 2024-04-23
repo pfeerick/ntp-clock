@@ -1,7 +1,7 @@
 #pragma once
 
-#include <globals.h>          // Global libraries and variables
-#include <ESP8266WebServer.h> // Local WebServer used to serve the configuration portal
+#include <ESP8266WebServer.h>  // Local WebServer used to serve the configuration portal
+#include <globals.h>           // Global libraries and variables
 #include <webserverHelper.h>  // Web server helper functions
 #include <wifiHelper.h>       // WiFi helper functions
 
@@ -124,18 +124,15 @@ void http_configPageSave()
 {
   String statusMsg;
   // set-time: 2024-01-01T00:00
-  if (webserver.hasArg("set-time"))
-  {
+  if (webserver.hasArg("set-time")) {
     const String dateTimeStr = webserver.arg("set-time");
     int year, month, day, hour, minute;
 
-    if (sscanf(dateTimeStr.c_str(), "%d-%d-%dT%d:%d", &year, &month, &day, &hour, &minute) == 5)
-    {
+    if (sscanf(dateTimeStr.c_str(), "%d-%d-%dT%d:%d", &year, &month, &day,
+               &hour, &minute) == 5) {
       setTime(hour, minute, 0, day, month, year);
       statusMsg += "Time set!";
-    }
-    else
-    {
+    } else {
       statusMsg += "Error setting time!";
     }
   }
@@ -175,14 +172,12 @@ void http_resetWifi()
 
 void http_getTimedate()
 {
-  webserver.send(200, "application/json",
-              "{\"hour\":" + String(hour()) +
-                  ", \"minute\":" + String(minute()) +
-                  ", \"second\":" + String(second()) +
-                  ", \"isAM\":" + String(isAM()) +
-                  ", \"day\":" + String(day()) +
-                  ", \"month\":" + String(month()) +
-                  ", \"year\":" + String(year()) + "}");
+  webserver.send(
+      200, "application/json",
+      "{\"hour\":" + String(hour()) + ", \"minute\":" + String(minute()) +
+          ", \"second\":" + String(second()) + ", \"isAM\":" + String(isAM()) +
+          ", \"day\":" + String(day()) + ", \"month\":" + String(month()) +
+          ", \"year\":" + String(year()) + "}");
 }
 
 void setupHTTP()

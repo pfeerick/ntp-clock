@@ -1,10 +1,10 @@
 #pragma once
 
-#include <globals.h>             // Global libraries and variables
 #include <Adafruit_GFX.h>        // Adafruit GFX routines
 #include <Adafruit_I2CDevice.h>  // Adafruit I2C device support
 #include <Max72xxPanel.h>        // MAX72xx multiplexer
 #include <SPI.h>                 // SPI device support
+#include <globals.h>             // Global libraries and variables
 #include <sensorHelper.h>        // Sensor helper functions
 
 namespace display

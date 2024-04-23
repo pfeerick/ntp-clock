@@ -61,9 +61,9 @@
  * A - Accelerometer
 */
 
-#include <globals.h>          // Global libraries and variables
 #include <displayHelper.h>    // Display helper functions
 #include <elapsedMillis.h>    // Non-blocking delays / event timers
+#include <globals.h>          // Global libraries and variables
 #include <sensorHelper.h>     // Sensor helper functions
 #include <sleepHelper.h>      // Sleep helper functions
 #include <webserverHelper.h>  // Web server helper functions

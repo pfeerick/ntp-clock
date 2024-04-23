@@ -26,7 +26,8 @@ constexpr char htmlHeadEnd[] PROGMEM = R"=====(
 </head><body><div style="text-align:left;display:inline-block;min-width:260px;">
 )=====";
 
-constexpr char htmlHeading[] PROGMEM = R"=====(<h1 class="c">%DEVICE_NAME%</h1>)=====";
+constexpr char htmlHeading[] PROGMEM =
+    R"=====(<h1 class="c">%DEVICE_NAME%</h1>)=====";
 constexpr char htmlFooter[] PROGMEM = R"=====(</div></body></html>)=====";
 
 constexpr char htmlJS[] PROGMEM = R"=====(

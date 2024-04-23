@@ -1,7 +1,7 @@
 #pragma once
 
-#include <globals.h>      // Global libraries and variables
 #include <ESP8266WiFi.h>  // ESP8266 Core WiFi Library
+#include <globals.h>      // Global libraries and variables
 
 namespace sleep
 {
