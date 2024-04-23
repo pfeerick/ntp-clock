@@ -170,6 +170,12 @@ void http_resetWifi()
   wifi::eraseWifi();
 }
 
+void http_sync()
+{
+  wifi::setupNTP(ntpUpdateInterval);
+  http_indexPage();
+}
+
 void http_getTimedate()
 {
   webserver.send(
@@ -188,6 +194,7 @@ void setupHTTP()
   webserver.on("/getTimedate", http_getTimedate);
   webserver.on("/config", http_configPage);
   webserver.on("/configSave", http_configPageSave);
+  webserver.on("/sync", http_sync);
   webserver.on("/resetWifi", http_resetWifi);
   webserver.onNotFound(notFound);
   webserver.begin();

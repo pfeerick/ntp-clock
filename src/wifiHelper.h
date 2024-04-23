@@ -163,7 +163,7 @@ void configModeCallback(WiFiManager *myWiFiManager)
 void setupNTP(unsigned int syncInterval)
 {
   setSyncProvider(getNtpTime);
-  setSyncInterval(syncInterval);  // every eight hours
+  setSyncInterval(syncInterval);
 }
 
 void setupUDP()

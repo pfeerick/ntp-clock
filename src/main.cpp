@@ -89,7 +89,7 @@ void setup()
   wifi::setupWifi();
   wifi::setupUDP();
   wifi::setupOTA();
-  wifi::setupNTP(28800);
+  wifi::setupNTP(ntpUpdateInterval); // every eight hours
 
   webserver::setupHTTP();
 

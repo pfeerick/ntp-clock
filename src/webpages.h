@@ -74,6 +74,9 @@ constexpr char controls[] PROGMEM = R"=====(
 <a href="/info"><button>Info</button></a><br/>
 <br/>
 <a href="/config"><button>Configure</button></a><br/>
+<br/>
+<a href="/sync"><button>Sync Time Now</button></a><br/>
+
 )=====";
 
 constexpr char info[] PROGMEM = R"=====(

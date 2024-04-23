@@ -4,7 +4,7 @@
 #define DEBUG_OI Serial
 
 #define OTA_HOSTNAME "NTP_Clock"
-#define VERSION "0.5.0"
+#define VERSION "0.6.0"
 #define DEVICE_NAME "NTP Clock"
 
 #include <Arduino.h>       // Arduino core functions
@@ -18,3 +18,4 @@ inline uint32_t loop_load_avg;  // Indicative loop load average
 inline bool restartDevice = false;    // Flag that device restart requested
 inline constexpr int timeZone = 10;   // AEST
 inline constexpr int BUTTON_PIN = 0;  // Connect button between GPIO0 and GND
+inline constexpr uint32_t ntpUpdateInterval = 60 * 60 * 8;  // every eight hours
