@@ -19,15 +19,15 @@
        \                     |
        [| RST        D1 Mini |
         |_____|  USB  |______|
- *
+ 
  [M] MAX72xx Panel
      IO16 - D0 - CS
      IO14 - D5 - CLK
      IO13 - D7 - MOSI
  
  [G] GY-521 / MPU-6050
-     IO5  - D1 - SDA/XDA
-     IO4  - D2 - SCL
+     IO5  - D1 - SCL
+     IO4  - D2 - SDA
  
  [B] Button
      IO0  - D3  - Button -> GND
