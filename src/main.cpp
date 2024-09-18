@@ -35,7 +35,7 @@ void setup()
   DebugBegin(115200);
   DebugInfo();
 
-  sensor::useIMU = false;
+  sensor::useIMU = true;
   sensor::initGyro();
 
   display::setDisplayOrientation(sensor::gyroGetValue(sensor::Y_AXIS, true));
@@ -44,7 +44,7 @@ void setup()
   wifi::setupWifi();
   wifi::setupUDP();
   wifi::setupOTA();
-  wifi::setupNTP(ntpUpdateInterval); // every eight hours
+  wifi::setupNTP(ntpUpdateInterval);
 
   webserver::setupHTTP();
 

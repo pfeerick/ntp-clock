@@ -188,13 +188,13 @@ void digitalClockDisplay()
 void setDisplayOrientation(float Y)
 {
   if (Y >= 40) {
-    DebugPrintln("Display up");
+    DebugPrintf("Display up (%.2f)\n", Y);
     display::setRotation(displayUp);
   } else if (Y <= -40) {
-    DebugPrintln("Display down");
+    DebugPrintf("Display down (%.2f)\n", Y);
     display::setRotation(displayDown);
   } else {
-    DebugPrintln("Display don't know");
+    DebugPrintf("Display don't know (%.2f)\n", Y);
     display::setRotation(displayUp);
   }
 }
