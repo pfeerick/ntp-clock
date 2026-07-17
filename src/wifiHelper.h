@@ -59,7 +59,10 @@ time_t getNtpTime()
     ;  // discard any previously received packets
   DebugPrintln("Transmit NTP Request");
   // get a random server from the pool
-  WiFi.hostByName(ntpServerName, ntpServerIP);
+  if (WiFi.hostByName(ntpServerName, ntpServerIP) != 1) {
+    DebugPrintln("DNS lookup failed");
+    return 0;  // return 0 if unable to get the time
+  }
   DebugPrint(ntpServerName);
   DebugPrint(": ");
   DebugPrintln(ntpServerIP);
@@ -85,7 +88,7 @@ time_t getNtpTime()
 
 void setupOTA()
 {
-  ArduinoOTA.setHostname(OTA_HOSTNAME);
+  ArduinoOTA.setHostname(HOSTNAME);
 
   ArduinoOTA.onStart([]() {
     DebugPrintln("OTA Programming Start");
@@ -98,7 +101,8 @@ void setupOTA()
   });
 
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    DebugPrintf("Progress: %u%%\r", (progress / (total / 100)));
+    unsigned int pct = (total >= 100) ? progress / (total / 100) : 0;
+    DebugPrintf("Progress: %u%%\r", pct);
     display::printProgress(progress, total);
   });
 
@@ -119,18 +123,18 @@ void setupOTA()
     display::printMsg("OTA ER");
   });
 
-  ArduinoOTA.setHostname(HOSTNAME);
   ArduinoOTA.begin();
   DebugPrintln("*OTA: Ready");
 }
 
 void WifiSetState(uint8_t state)
 {
-  if (state) {
-    downtime += uptime - last_event;
-  } else {
-    last_event = uptime;
+  static uint8_t prevState = 1;
+  if (state != prevState) {
+    prevState = state;
+    last_event = uptime;  // mark the moment of transition
   }
+  downtime = state ? 0 : (uptime - last_event);
 }
 
 void WifiCheckState(void)
@@ -178,20 +182,20 @@ void setupWifi()
   wifiManager.setAPCallback(configModeCallback);
   wifiManager.setConfigPortalTimeout(300);  // 5 minute timout
 
-#ifndef DEBUG
+#if DEBUG != true
   wifiManager.setDebugOutput(false);
 #endif
 
   display::printMsg("WiFi");
 
-  if (!wifiManager.autoConnect(OTA_HOSTNAME)) {
+  if (!wifiManager.autoConnect(HOSTNAME)) {
     DebugPrintln("Failed to connect and hit timeout");
     // reset and try again
     ESP.reset();
     delay(1000);
   }
 
-  WiFi.hostname(OTA_HOSTNAME);
+  WiFi.hostname(HOSTNAME);
 }
 
 void eraseWifi()

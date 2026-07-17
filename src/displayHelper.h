@@ -69,10 +69,11 @@ void printProgress(int progress, int total)
   matrix.drawPixel(7, 4, HIGH);
 
   matrix.setCursor(9, 0);
-  if ((progress / (total / 100)) < 10) {
+  int pct = (total >= 100) ? progress / (total / 100) : 0;
+  if (pct < 10) {
     matrix.print("0");
   }
-  matrix.print((progress / (total / 100)));
+  matrix.print(pct);
   matrix.print("%");
   matrix.write();
 }
@@ -94,12 +95,12 @@ void scrollingText(String msg, uint8_t animationSpeed)
        i < width * msg.length() + matrix.width() - 1 - spacer; i++) {
     matrix.fillScreen(LOW);
 
-    unsigned int letter = i / width;
+    int letter = i / width;
     int x = (matrix.width() - 1) - i % width;
     int y = (matrix.height() - 8) / 2;  // center the text vertically
 
     while (x + width - spacer >= 0 && letter >= 0) {
-      if (letter < msg.length()) {
+      if (letter < (int)msg.length()) {
         matrix.drawChar(x, y, msg[letter], HIGH, LOW, 1);
       }
 

@@ -3,7 +3,6 @@
 #define DEBUG true
 #define DEBUG_OI Serial
 
-#define OTA_HOSTNAME "NTP_Clock"
 #define VERSION "0.6.0"
 #define DEVICE_NAME "NTP Clock"
 

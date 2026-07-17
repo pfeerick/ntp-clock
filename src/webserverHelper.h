@@ -2,7 +2,6 @@
 
 #include <ESP8266WebServer.h>  // Local WebServer used to serve the configuration portal
 #include <globals.h>           // Global libraries and variables
-#include <webserverHelper.h>  // Web server helper functions
 #include <wifiHelper.h>       // WiFi helper functions
 
 #include "webpages.h"  // Web page source code
@@ -10,7 +9,6 @@
 namespace webserver
 {
 ESP8266WebServer webserver(80);
-WiFiClient espClient;
 
 void notFound()
 {
@@ -49,11 +47,11 @@ void http_indexPage()
 void http_infoPage()
 {
   // calculate uptime
-  long millisecs = millis() / 1000;
-  int systemUpTimeSc = millisecs % 60;
-  int systemUpTimeMn = (millisecs / 60) % 60;
-  int systemUpTimeHr = (millisecs / (60 * 60)) % 24;
-  int systemUpTimeDy = (millisecs / (60 * 60 * 24));
+  uint32_t upSeconds = uptime;
+  int systemUpTimeSc = upSeconds % 60;
+  int systemUpTimeMn = (upSeconds / 60) % 60;
+  int systemUpTimeHr = (upSeconds / (60 * 60)) % 24;
+  int systemUpTimeDy = (upSeconds / (60 * 60 * 24));
 
   // // get SPIFFs info
   // FSInfo fs_info;
@@ -126,10 +124,11 @@ void http_configPageSave()
   // set-time: 2024-01-01T00:00
   if (webserver.hasArg("set-time")) {
     const String dateTimeStr = webserver.arg("set-time");
-    int year, month, day, hour, minute, second;
+    int year, month, day, hour, minute;
+    int second = 0;
 
     if (sscanf(dateTimeStr.c_str(), "%d-%d-%dT%d:%d:%d", &year, &month, &day,
-               &hour, &minute, &second) == 6) {
+               &hour, &minute, &second) >= 5) {
       setTime(hour, minute, second, day, month, year);
       statusMsg += "Time set!";
     } else {
