@@ -1,6 +1,13 @@
 <!-- @include partials/head.html -->
-<meta http-equiv="refresh" content="3;/">
+<script>
+setTimeout(function () {
+  window.location.href = "/";
+}, 3000);
+</script>
 <!-- @include partials/body-start.html -->
-%STATUS_MSG%<br />
-Returning to main page...
+<p class="c">%STATUS_MSG%</p>
+<p class="c muted">Returning to main page in 3 seconds&hellip;</p>
+<nav class="stack">
+<a class="btn" href="/">Return now</a>
+</nav>
 <!-- @include partials/footer.html -->

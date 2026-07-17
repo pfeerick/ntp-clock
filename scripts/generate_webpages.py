@@ -12,6 +12,7 @@ Bun (web/dev-server.ts) is only used for local page development in a
 browser; it is never required to build the firmware.
 """
 
+import gzip
 import os
 import re
 from pathlib import Path
@@ -21,7 +22,14 @@ Import("env")  # noqa: F821 -- injected by PlatformIO
 PROJECT_DIR = Path(env["PROJECT_DIR"])
 WEB_DIR = PROJECT_DIR / "web"
 PAGES_DIR = WEB_DIR / "pages"
+ASSETS_DIR = WEB_DIR / "assets"
 OUTPUT_FILE = PROJECT_DIR / "src" / "generated" / "webpages.h"
+
+# Assets served as their own gzip'd HTTP routes (see src/webserverHelper.h),
+# rather than inlined into page templates via @include. Unlike pages, these
+# have no runtime %PLACEHOLDER% substitution, so they can be compressed once
+# at build time.
+GZIPPED_ASSET_EXTENSIONS = (".css", ".js")
 
 # Matches a line that is *only* an include directive, e.g.
 #   <!-- @include partials/head.html -->
@@ -70,6 +78,11 @@ def symbol_name(page_path: Path) -> str:
     return "page_" + page_path.stem.replace("-", "_")
 
 
+def asset_symbol_name(asset_path: Path) -> str:
+    """style.css -> asset_style_css_gz"""
+    return "asset_" + asset_path.name.replace(".", "_").replace("-", "_") + "_gz"
+
+
 def wrap_progmem(name: str, content: str) -> str:
     """Wrap `content` in a PROGMEM raw-string literal, picking a delimiter
     that can't collide with the closing `)<delim>"` sequence appearing
@@ -80,6 +93,19 @@ def wrap_progmem(name: str, content: str) -> str:
     return f'constexpr char {name}[] PROGMEM = R"{delimiter}(\n{content}\n){delimiter}";\n\n'
 
 
+def wrap_progmem_gzip_bytes(name: str, raw_bytes: bytes) -> str:
+    """Gzip `raw_bytes` and emit it as a `uint8_t[] PROGMEM` byte array plus
+    a matching `_len` constant. Used for static assets (CSS/JS) that have no
+    runtime %PLACEHOLDER% substitution, so they can be compressed once here
+    rather than on every request. `mtime=0` keeps the output byte-for-byte
+    reproducible across builds regardless of when they run."""
+    compressed = gzip.compress(raw_bytes, compresslevel=9, mtime=0)
+    hex_bytes = ", ".join(f"0x{b:02x}" for b in compressed)
+    out = f"constexpr uint8_t {name}[] PROGMEM = {{{hex_bytes}}};\n"
+    out += f"constexpr size_t {name}_len = {len(compressed)};\n\n"
+    return out
+
+
 def generate():
     if not PAGES_DIR.is_dir():
         raise RuntimeError(f"generate_webpages.py: pages directory not found: {PAGES_DIR}")
@@ -87,6 +113,10 @@ def generate():
     page_files = sorted(PAGES_DIR.glob("*.html"))
     if not page_files:
         raise RuntimeError(f"generate_webpages.py: no *.html page templates found in {PAGES_DIR}")
+
+    asset_files = sorted(
+        f for f in ASSETS_DIR.glob("*") if f.suffix in GZIPPED_ASSET_EXTENSIONS
+    )
 
     chunks = [
         "#pragma once\n\n",
@@ -98,6 +128,10 @@ def generate():
     for page_file in page_files:
         composed = resolve_includes(page_file)
         chunks.append(wrap_progmem(symbol_name(page_file), composed))
+
+    for asset_file in asset_files:
+        raw_bytes = asset_file.read_bytes()
+        chunks.append(wrap_progmem_gzip_bytes(asset_symbol_name(asset_file), raw_bytes))
 
     new_content = "".join(chunks)
 

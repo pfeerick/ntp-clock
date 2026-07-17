@@ -93,7 +93,12 @@ void http_configPage()
   // construct config page
   String html = FPSTR(page_config);
 
+  char currentDateTime[20];
+  snprintf(currentDateTime, sizeof(currentDateTime), "%04d-%02d-%02dT%02d:%02d:%02d",
+           year(), month(), day(), hour(), minute(), second());
+
   html.replace("%DEVICE_NAME%", DEVICE_NAME);
+  html.replace("%CURRENT_DATETIME%", currentDateTime);
   webserver.send(200, "text/html", html);
 }
 /**
@@ -129,7 +134,9 @@ void http_configPageSave()
  */
 void http_restart()
 {
-  webserver.send(200, "text/plain", "Restart!");
+  String html = FPSTR(page_restart);
+  html.replace("%DEVICE_NAME%", DEVICE_NAME);
+  webserver.send(200, "text/html", html);
   restartDevice = true;
 }
 
@@ -138,8 +145,10 @@ void http_restart()
  */
 void http_resetWifi()
 {
-  webserver.send(200, "text/plain",
-                 "Clearing WiFi credentials. You will need to reconfigure AP!");
+  String html = FPSTR(page_reset_wifi);
+  html.replace("%DEVICE_NAME%", DEVICE_NAME);
+  html.replace("%HOSTNAME%", HOSTNAME);
+  webserver.send(200, "text/html", html);
   wifi::eraseWifi();
 }
 
@@ -159,16 +168,73 @@ void http_getTimedate()
           ", \"year\":" + String(year()) + "}");
 }
 
+/**
+ * @brief Handle "/getInfo" URL request -- JSON payload of the info page's
+ * fields that actually change over time, polled by web/assets/info.js so
+ * "/info" no longer needs a full-page <meta http-equiv="refresh">.
+ */
+void http_getInfo()
+{
+  uint32_t upSeconds = uptime;
+  int systemUpTimeSc = upSeconds % 60;
+  int systemUpTimeMn = (upSeconds / 60) % 60;
+  int systemUpTimeHr = (upSeconds / (60 * 60)) % 24;
+  int systemUpTimeDy = (upSeconds / (60 * 60 * 24));
+
+  webserver.send(
+      200, "application/json",
+      "{\"loadAvg\":" + String(loop_load_avg) +
+          ", \"freeHeap\":" + String(ESP.getFreeHeap()) +
+          ", \"heapFragmentation\":" + String(ESP.getHeapFragmentation()) +
+          ", \"rssi\":" + String(WiFi.RSSI()) +
+          ", \"uptimeDy\":" + String(systemUpTimeDy) +
+          ", \"uptimeHr\":" + String(systemUpTimeHr) +
+          ", \"uptimeMn\":" + String(systemUpTimeMn) +
+          ", \"uptimeSc\":" + String(systemUpTimeSc) +
+          ", \"uptime\":" + String(uptime) + "}");
+}
+
+/**
+ * @brief Handlers for gzip'd static assets (CSS/JS under web/assets/),
+ * embedded as PROGMEM byte arrays by scripts/generate_webpages.py. These have no
+ * runtime %PLACEHOLDER% substitution, so they're served verbatim -- no
+ * String copy -- with Content-Encoding/Cache-Control headers.
+ */
+void http_styleCss()
+{
+  webserver.sendHeader(F("Content-Encoding"), F("gzip"));
+  webserver.sendHeader(F("Cache-Control"), F("public, max-age=86400"));
+  webserver.send_P(200, "text/css", (PGM_P)asset_style_css_gz, asset_style_css_gz_len);
+}
+
+void http_clockJs()
+{
+  webserver.sendHeader(F("Content-Encoding"), F("gzip"));
+  webserver.sendHeader(F("Cache-Control"), F("public, max-age=86400"));
+  webserver.send_P(200, "application/javascript", (PGM_P)asset_clock_js_gz, asset_clock_js_gz_len);
+}
+
+void http_infoJs()
+{
+  webserver.sendHeader(F("Content-Encoding"), F("gzip"));
+  webserver.sendHeader(F("Cache-Control"), F("public, max-age=86400"));
+  webserver.send_P(200, "application/javascript", (PGM_P)asset_info_js_gz, asset_info_js_gz_len);
+}
+
 void setupHTTP()
 {
   webserver.on("/", http_indexPage);
   webserver.on("/restart", http_restart);
   webserver.on("/info", http_infoPage);
   webserver.on("/getTimedate", http_getTimedate);
+  webserver.on("/getInfo", http_getInfo);
   webserver.on("/config", http_configPage);
   webserver.on("/configSave", http_configPageSave);
   webserver.on("/sync", http_sync);
   webserver.on("/resetWifi", http_resetWifi);
+  webserver.on("/style.css", http_styleCss);
+  webserver.on("/clock.js", http_clockJs);
+  webserver.on("/info.js", http_infoJs);
   webserver.onNotFound(notFound);
   webserver.begin();
 }

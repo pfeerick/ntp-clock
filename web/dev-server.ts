@@ -21,6 +21,7 @@ import { join } from "node:path";
 
 const WEB_DIR = import.meta.dir;
 const PAGES_DIR = join(WEB_DIR, "pages");
+const ASSETS_DIR = join(WEB_DIR, "assets");
 const MOCK_VALUES_PATH = join(WEB_DIR, "mock-values.json");
 const PORT = 8266;
 const DEFAULT_NTP_SYNC_INTERVAL_SECONDS = 60 * 60 * 8; // matches ntpUpdateInterval in src/globals.h
@@ -104,6 +105,11 @@ function deviceName(): string {
   return String(values["DEVICE_NAME"] ?? "ntp-clock-dev");
 }
 
+function hostName(): string {
+  const values = loadMockValues();
+  return String(values["HOSTNAME"] ?? "ntp-clock-dev");
+}
+
 function ntpSyncIntervalSeconds(): number {
   const raw = Number(loadMockValues()["ntpSyncIntervalSeconds"]);
   return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_NTP_SYNC_INTERVAL_SECONDS;
@@ -115,8 +121,33 @@ function renderIndex(): string {
   return replaceToken(composePage("index"), "DEVICE_NAME", deviceName());
 }
 
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+function currentDateTimeValue(): string {
+  const now = virtualNow();
+  return (
+    `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}` +
+    `T${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`
+  );
+}
+
 function renderConfig(): string {
-  return replaceToken(composePage("config"), "DEVICE_NAME", deviceName());
+  let html = replaceToken(composePage("config"), "DEVICE_NAME", deviceName());
+  html = replaceToken(html, "CURRENT_DATETIME", currentDateTimeValue());
+  return html;
+}
+
+// Mirrors http_restart() / http_resetWifi() in src/webserverHelper.h.
+function renderRestart(): string {
+  return replaceToken(composePage("restart"), "DEVICE_NAME", deviceName());
+}
+
+function renderResetWifi(): string {
+  let html = replaceToken(composePage("reset-wifi"), "DEVICE_NAME", deviceName());
+  html = replaceToken(html, "HOSTNAME", hostName());
+  return html;
 }
 
 // Same integer math as http_infoPage() in src/webserverHelper.h.
@@ -143,6 +174,25 @@ function renderInfo(): string {
   html = replaceToken(html, "systemUpTimeSc", String(systemUpTimeSc));
   html = replaceToken(html, "uptime", String(uptimeSeconds));
   return html;
+}
+
+// Mirrors http_getInfo() in src/webserverHelper.h -- just the info page
+// fields that actually change over time, polled by web/assets/info.js.
+function renderGetInfo(): string {
+  const values = loadMockValues();
+  const uptimeSeconds = Math.floor((Date.now() - bootTime) / 1000);
+  const { systemUpTimeDy, systemUpTimeHr, systemUpTimeMn, systemUpTimeSc } = uptimeFields(uptimeSeconds);
+  return JSON.stringify({
+    loadAvg: String(values["loop_load_avg"] ?? ""),
+    freeHeap: Number(values["ESP.getFreeHeap"] ?? 0),
+    heapFragmentation: Number(values["ESP.getHeapFragmentation"] ?? 0),
+    rssi: Number(values["WiFi.RSSI"] ?? 0),
+    uptimeDy: systemUpTimeDy,
+    uptimeHr: systemUpTimeHr,
+    uptimeMn: systemUpTimeMn,
+    uptimeSc: systemUpTimeSc,
+    uptime: uptimeSeconds,
+  });
 }
 
 // Matches the firmware's set-time parsing: sscanf(dateTimeStr,
@@ -245,6 +295,13 @@ const text = (body: string, init: ResponseInit = {}) =>
   new Response(body, { headers: { "Content-Type": "text/plain" }, ...init });
 const json = (body: string, init: ResponseInit = {}) =>
   new Response(body, { headers: { "Content-Type": "application/json" }, ...init });
+// Static assets are served uncompressed here -- gzip is a firmware-only
+// optimization applied at build time by scripts/generate_webpages.py, not
+// something this local preview server needs to replicate.
+const css = (body: string, init: ResponseInit = {}) =>
+  new Response(body, { headers: { "Content-Type": "text/css" }, ...init });
+const js = (body: string, init: ResponseInit = {}) =>
+  new Response(body, { headers: { "Content-Type": "application/javascript" }, ...init });
 
 Bun.serve({
   port: PORT,
@@ -269,15 +326,24 @@ Bun.serve({
           return html(renderConfigSave(url.searchParams.get("set-time")));
         case "/getTimedate":
           return json(renderTimedate());
+        case "/getInfo":
+          return json(renderGetInfo());
+        case "/style.css":
+          return css(readFileSync(join(ASSETS_DIR, "style.css"), "utf8"));
+        case "/clock.js":
+          return js(readFileSync(join(ASSETS_DIR, "clock.js"), "utf8"));
+        case "/info.js":
+          return js(readFileSync(join(ASSETS_DIR, "info.js"), "utf8"));
         case "/restart":
           // Emulate a reboot: NTP re-syncs on boot (offset cleared) and
           // uptime restarts from zero.
           offsetMs = 0;
           bootTime = Date.now();
           console.log("[device] restart: clock re-synced, uptime reset");
-          return text("Restart!");
+          return html(renderRestart());
         case "/resetWifi":
-          return text("Clearing WiFi credentials. You will need to reconfigure AP!");
+          console.log("[wifi] credentials erased (simulated -- dev server stays reachable)");
+          return html(renderResetWifi());
         default:
           return text(renderNotFound(req, url), { status: 404 });
       }

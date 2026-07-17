@@ -1,31 +1,26 @@
 <!-- @include partials/head.html -->
-<meta http-equiv="refresh" content="60">
+<script src="/info.js" defer></script>
 <!-- @include partials/body-start.html -->
-<b>ESP8266 Core Version:</b> %ESP.getCoreVersion%<br />
-<b>ESP8266 SDK Version:</b> %ESP.getSdkVersion%<br />
-<br />
-<b>Reset Reason:</b> %ESP.getResetReason%<br />
-<br />
-<b>Load Average:</b> %loop_load_avg%<br />
-<b>Free Heap:</b> %ESP.getFreeHeap% bytes (%ESP.getHeapFragmentation%% fragmentation)<br />
-<br />
-<b>ESP8266 Chip ID:</b> %ESP.getChipId%<br />
-<b>ESP8266 Flash Chip ID:</b> %ESP.getFlashChipId%<br />
-<br />
-<b>Flash Chip Size:</b> %ESP.getFlashChipRealSize% bytes (%ESP.getFlashChipSize% bytes seen by SDK)<br />
-<b>Sketch Size:</b> %ESP.getSketchSize% bytes used of %ESP.getFreeSketchSpace% bytes available<br />
-<!-- <b>File System Usage:</b> %fs_info.usedBytes% bytes used of %fs_info.totalBytes% bytes available</br> -->
-<br />
-<b>WiFi SSID:</b> %WiFi.SSID%<br />
-<b>WiFi RSSI:</b> %WiFi.RSSI%dBm<br />
-<b>WiFi IP:</b> %WiFi.localIP%<br />
-<br />
-<b>System Uptime:</b> %systemUpTimeDy% day(s), %systemUpTimeHr% hour(s), %systemUpTimeMn% minute(s), %systemUpTimeSc% second(s)<br />
-<b>Uptime (seconds):</b> %uptime%<br />
-<br /><br />
-<a href="/restart"><button>Restart</button></a>
-<br /><br />
-<a href="/resetWifi"><button>Erase WiFi Credentials</button></a>
-<br /><br />
-<a href="/"><button>Back</button></a>
+<dl class="info-grid">
+<dt>ESP8266 Core Version</dt><dd>%ESP.getCoreVersion%</dd>
+<dt>ESP8266 SDK Version</dt><dd>%ESP.getSdkVersion%</dd>
+<dt>Reset Reason</dt><dd>%ESP.getResetReason%</dd>
+<dt>Load Average</dt><dd id="load-avg">%loop_load_avg%</dd>
+<dt>Free Heap</dt><dd id="free-heap">%ESP.getFreeHeap% bytes (%ESP.getHeapFragmentation%% fragmentation)</dd>
+<dt>ESP8266 Chip ID</dt><dd>%ESP.getChipId%</dd>
+<dt>ESP8266 Flash Chip ID</dt><dd>%ESP.getFlashChipId%</dd>
+<dt>Flash Chip Size</dt><dd>%ESP.getFlashChipRealSize% bytes (%ESP.getFlashChipSize% bytes seen by SDK)</dd>
+<dt>Sketch Size</dt><dd>%ESP.getSketchSize% bytes used of %ESP.getFreeSketchSpace% bytes available</dd>
+<!-- <dt>File System Usage</dt><dd>%fs_info.usedBytes% bytes used of %fs_info.totalBytes% bytes available</dd> -->
+<dt>WiFi SSID</dt><dd>%WiFi.SSID%</dd>
+<dt>WiFi RSSI</dt><dd id="wifi-rssi">%WiFi.RSSI%dBm</dd>
+<dt>WiFi IP</dt><dd>%WiFi.localIP%</dd>
+<dt>System Uptime</dt><dd id="uptime-readable">%systemUpTimeDy% day(s), %systemUpTimeHr% hour(s), %systemUpTimeMn% minute(s), %systemUpTimeSc% second(s)</dd>
+<dt>Uptime (seconds)</dt><dd id="uptime-seconds">%uptime%</dd>
+</dl>
+<nav class="stack">
+<a class="btn btn-danger" href="/restart" onclick="return confirm('Restart the device?')">Restart</a>
+<a class="btn btn-danger" href="/resetWifi" onclick="return confirm('Erase WiFi credentials? You will need to reconfigure the access point.')">Erase WiFi Credentials</a>
+<a class="btn btn-secondary" href="/">Back</a>
+</nav>
 <!-- @include partials/footer.html -->

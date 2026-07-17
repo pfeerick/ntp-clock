@@ -58,8 +58,11 @@ The web UI (index/info/config pages) lives as real HTML/CSS/JS sources under
 in the firmware source. At build time, `scripts/generate_webpages.py` (a
 PlatformIO `pre:` extra_script, stdlib Python only) composes those sources
 into `src/generated/webpages.h` -- a gitignored, auto-generated header with
-one PROGMEM constant per page. This runs automatically as part of every
-`pio run`, so **no extra tooling is required to build the firmware**.
+one PROGMEM constant per page, plus a gzip-compressed PROGMEM byte array for
+each static asset under `web/assets/` (`style.css`, `clock.js`, `info.js`),
+served from their own `Content-Encoding: gzip` routes rather than inlined
+into every page. This runs automatically as part of every `pio run`, so
+**no extra tooling is required to build the firmware**.
 
 Because `src/generated/webpages.h` doesn't exist until the first
 `pio run`, your editor may show a missing-include squiggle on
