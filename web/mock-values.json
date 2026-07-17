@@ -1,0 +1,19 @@
+{
+  "DEVICE_NAME": "ntp-clock-dev",
+  "ESP.getCoreVersion": "3_1_2",
+  "ESP.getSdkVersion": "3.0.5-dev(b57282a)",
+  "ESP.getResetReason": "External System",
+  "loop_load_avg": "12%",
+  "ESP.getFreeHeap": "34512",
+  "ESP.getHeapFragmentation": "6",
+  "ESP.getChipId": "0xAABBCC",
+  "ESP.getFlashChipId": "0x1640E0",
+  "ESP.getFlashChipRealSize": "4194304",
+  "ESP.getFlashChipSize": "4194304",
+  "ESP.getSketchSize": "512000",
+  "ESP.getFreeSketchSpace": "716800",
+  "WiFi.SSID": "MyDevWiFi",
+  "WiFi.RSSI": "-52",
+  "WiFi.localIP": "192.168.1.42",
+  "ntpSyncIntervalSeconds": 28800
+}

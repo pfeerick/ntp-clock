@@ -1,0 +1,17 @@
+<!-- @include partials/head.html -->
+<!-- @include partials/body-start.html -->
+<form action="/configSave">
+<label for="set-time">Set the date and time:</label>
+<input
+  type="datetime-local"
+  id="set-time"
+  name="set-time"
+  value="2024-01-01T00:00:00"
+  step="1"
+ />
+ <br /><br />
+ <input type="submit" value="Save" />
+ </form>
+ <br />
+ <a href="/"><button>Back</button></a>
+<!-- @include partials/footer.html -->

@@ -1,0 +1,8 @@
+{
+  "name": "ntp-clock-web",
+  "private": true,
+  "description": "Dev-only tooling for iterating on the ntp-clock web UI (web/) in a browser.",
+  "scripts": {
+    "dev": "bun --watch web/dev-server.ts"
+  }
+}

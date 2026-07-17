@@ -4,7 +4,7 @@
 #include <globals.h>           // Global libraries and variables
 #include <wifiHelper.h>       // WiFi helper functions
 
-#include "webpages.h"  // Web page source code
+#include "generated/webpages.h"  // Web page source code (generated from web/ by scripts/generate_webpages.py)
 
 namespace webserver
 {
@@ -30,14 +30,7 @@ void notFound()
 
 void http_indexPage()
 {
-  String html = FPSTR(htmlHead);
-  html += FPSTR(htmlStyle);
-  html += FPSTR(htmlJS);
-  html += FPSTR(htmlHeadEnd);
-  html += FPSTR(htmlHeading);
-  html += FPSTR(htmlTime);
-  html += FPSTR(controls);
-  html += FPSTR(htmlFooter);
+  String html = FPSTR(page_index);
 
   html.replace("%DEVICE_NAME%", DEVICE_NAME);
 
@@ -58,19 +51,12 @@ void http_infoPage()
   // LittleFS.info(fs_info);
 
   // compose info string
-  String html = FPSTR(htmlHead);
-  html += FPSTR(htmlStyle);
-  html += FPSTR(htmlHeadRefresh);
-  html += FPSTR(htmlHeadEnd);
-  html += FPSTR(htmlHeading);
-  html += FPSTR(info);
-  html += FPSTR(htmlFooter);
+  String html = FPSTR(page_info);
 
   // replace placeholders
   String chipID = String(ESP.getChipId(), HEX);
   chipID.toUpperCase();
 
-  html.replace("%REFRESH_CONTENT%", "60");
   html.replace("%DEVICE_NAME%", DEVICE_NAME);
   html.replace("%ESP.getCoreVersion%", ESP.getCoreVersion());
   html.replace("%ESP.getSdkVersion%", ESP.getSdkVersion());
@@ -105,12 +91,7 @@ void http_infoPage()
 void http_configPage()
 {
   // construct config page
-  String html = FPSTR(htmlHead);
-  html += FPSTR(htmlStyle);
-  html += FPSTR(htmlHeadEnd);
-  html += FPSTR(htmlHeading);
-  html += FPSTR(htmlConfig);
-  html += FPSTR(htmlFooter);
+  String html = FPSTR(page_config);
 
   html.replace("%DEVICE_NAME%", DEVICE_NAME);
   webserver.send(200, "text/html", html);
@@ -135,17 +116,10 @@ void http_configPageSave()
       statusMsg += "Error setting time!";
     }
   }
-  String html = FPSTR(htmlHead);
-  html += FPSTR(htmlStyle);
-  html += FPSTR(htmlHeadRefresh);
-  html += FPSTR(htmlHeadEnd);
-  html += FPSTR(htmlHeading);
-  html += statusMsg + "<br />";
-  html += F("Returning to main page...");
-  html += FPSTR(htmlFooter);
+  String html = FPSTR(page_config_save);
 
   html.replace("%DEVICE_NAME%", DEVICE_NAME);
-  html.replace("%REFRESH_CONTENT%", "3;/");
+  html.replace("%STATUS_MSG%", statusMsg);
 
   webserver.send(200, "text/html", html);
 }
